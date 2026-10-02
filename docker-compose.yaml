@@ -1,0 +1,73 @@
+services:
+  application:
+    build: .
+    container_name: monaly-application
+    ports:
+      - "8080:8080"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/monaly
+      SPRING_DATASOURCE_USERNAME: monaly
+      SPRING_DATASOURCE_PASSWORD: monaly
+
+      SPRING_DATA_REDIS_HOST: redis
+      SPRING_DATA_REDIS_PORT: 6379
+
+      SPRING_RABBITMQ_HOST: rabbitmq
+      SPRING_RABBITMQ_PORT: 5672
+      SPRING_RABBITMQ_USERNAME: monaly
+      SPRING_RABBITMQ_PASSWORD: monaly
+
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_started
+      rabbitmq:
+        condition: service_healthy
+
+  postgres:
+    image: postgres:17
+    container_name: monaly-postgres
+    environment:
+      POSTGRES_DB: monaly
+      POSTGRES_USER: monaly
+      POSTGRES_PASSWORD: monaly
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U monaly -d monaly"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  redis:
+    image: redis:7-alpine
+    container_name: monaly-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+
+  rabbitmq:
+    image: rabbitmq:4-management
+    container_name: monaly-rabbitmq
+    environment:
+      RABBITMQ_DEFAULT_USER: monaly
+      RABBITMQ_DEFAULT_PASS: monaly
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  postgres_data:
+  redis_data:
+  rabbitmq_data:
