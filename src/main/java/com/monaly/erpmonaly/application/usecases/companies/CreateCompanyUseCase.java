@@ -15,6 +15,6 @@ public class CreateCompanyUseCase {
         this.companyGateway = companyGateway;
     }
     public Company createCompany(CreateCompanyRequest createCompanyRequest) {
-        return companyGateway.createCompany(createCompanyRequest);
+        return companyGateway.save(createCompanyRequest);
     }
 }

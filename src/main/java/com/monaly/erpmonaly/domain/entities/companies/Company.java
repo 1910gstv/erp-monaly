@@ -8,4 +8,16 @@ public record Company(UUID id, String name, String cnpj) {
         this.name = name;
         this.cnpj = cnpj;
     }
+
+    public UUID getId() {
+        return id;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public String getCnpj() {
+        return cnpj;
+    }
 }
