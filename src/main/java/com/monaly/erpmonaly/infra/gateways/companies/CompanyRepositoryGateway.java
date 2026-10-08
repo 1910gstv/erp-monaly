@@ -53,4 +53,18 @@ public class CompanyRepositoryGateway implements CompanyGateway {
                 companyEntity.getCnpj()
         )).toList();
     }
+
+    @Override
+    public Company findByCnpj(String tax_id){
+        CompanyEntity finded = companyRepository.findByCnpj(tax_id);
+        if(finded == null){
+            return null;
+        }
+
+        return new Company(
+                finded.getId(),
+                finded.getName(),
+                finded.getCnpj()
+        );
+    }
 }

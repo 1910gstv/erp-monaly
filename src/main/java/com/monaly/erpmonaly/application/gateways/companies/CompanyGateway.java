@@ -8,4 +8,5 @@ import java.util.List;
 public interface CompanyGateway {
     Company save(CreateCompanyRequest createCompanyRequest);
     List<Company> listAll();
+    Company findByCnpj(String tax_id);
 }

@@ -15,6 +15,7 @@ public class SecurityConfig {
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/health").permitAll()
+                        .requestMatchers("/readyz", "/livez").permitAll()
                         .requestMatchers("/companies/*").permitAll()
                         .anyRequest().authenticated()
                 );
