@@ -22,6 +22,7 @@ public class CompaniesController {
 
     @PostMapping("/create")
     public Company create(@Valid @RequestBody CreateCompanyRequest request){
+    //public Company create(CreateCompanyRequest request){
         return createCompanyUseCase.createCompany(request);
     }
 
