@@ -93,12 +93,12 @@ Os papéis abaixo são uma proposta inicial. Permissões detalhadas devem ser va
 ### Regras de acesso propostas
 
 - Cada requisição autenticada atua em nome de um usuário e de uma empresa.
-- No MVP, assume-se que cada usuário pertence a uma única empresa.
+- **Decisão do MVP:** cada usuário pertence a uma única empresa, e cada e-mail identifica uma única conta no sistema todo.
 - A empresa da requisição deve ser derivada da identidade autenticada, não aceita livremente do cliente.
 - Papéis e permissões são verificados no servidor.
 - A remoção ou bloqueio de um usuário deve impedir novas autenticações sem apagar o histórico das operações já realizadas.
 
-**Pendente de decisão:** permitir que um mesmo usuário trabalhe para mais de uma empresa? O modelo inicial do backlog assume que não.
+Usuários associados a múltiplas empresas estão fora do MVP; esse suporte poderá ser avaliado em um card futuro.
 
 ---
 
@@ -625,4 +625,3 @@ Este documento pode ser considerado aprovado quando:
 - As perguntas pendentes que impactam o MVP tiverem resposta ou decisão explícita de adiamento.
 - O time concordar com os critérios de integridade de estoque, venda e isolamento por empresa.
 - O backlog for atualizado para refletir decisões e remover itens que não agreguem valor ao público inicial.
-

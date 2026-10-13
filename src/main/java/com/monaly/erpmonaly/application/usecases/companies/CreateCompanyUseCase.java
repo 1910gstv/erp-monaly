@@ -34,13 +34,20 @@ public class CreateCompanyUseCase {
             );
         }
         Company companyExist = companyGateway.findByCnpj(createCompanyRequest.cnpj());
+        String normalizedCnpj = normalizeCNPJ(createCompanyRequest.cnpj());
 
+        
+        CreateCompanyRequest finalCreateCompany = new CreateCompanyRequest(createCompanyRequest.name(), normalizedCnpj);
         if(companyExist != null){
             throw new DuplicationException(
                     "Company already exists"
             );
         }
 
-        return companyGateway.save(createCompanyRequest);
+        return companyGateway.save(finalCreateCompany);
+    }
+
+    private String normalizeCNPJ(String cnpj){
+        return cnpj.replaceAll("\\D", "");
     }
 }

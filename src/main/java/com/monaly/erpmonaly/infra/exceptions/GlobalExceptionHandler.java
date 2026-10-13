@@ -35,7 +35,7 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler({Exception.class})
     public ResponseEntity<ErrorResponse> handleGenericException(Exception exception, WebRequest request){
-        return ResponseEntity.internalServerError().body(new ErrorResponse(GENERIC_MESSAGE, LocalDateTime.now()));
+        return ResponseEntity.internalServerError().body(new ErrorResponse(exception.getMessage(), LocalDateTime.now()));
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)

@@ -1,13 +1,8 @@
 package com.monaly.erpmonaly.infra.persistence;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
+import com.monaly.erpmonaly.domain.enums.UserRole;
+import jakarta.persistence.*;
 
-import java.time.OffsetDateTime;
 import java.util.UUID;
 
 @Entity
@@ -15,46 +10,41 @@ import java.util.UUID;
 public class UserEntity {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
     @Column(nullable = false, length = 150)
     private String username;
 
-    @Column(nullable = false, length = 20)
+    @Column(nullable = false, length = 255)
     private String email;
 
-    @Column(nullable = false, length = 20)
+    @Column(nullable = false, length = 255)
     private String password;
 
     @Column(nullable = false, length = 20)
-    private String role;
+    @Enumerated(EnumType.STRING)
+    private UserRole role;
 
-    @Column(name = "created_at", nullable = false)
-    private OffsetDateTime createdAt;
-
-    @Column(name = "updated_at", nullable = false)
-    private OffsetDateTime updatedAt;
+    @Column(name = "company_id", nullable = false)
+    private UUID companyId;
 
     protected UserEntity() {
+        // Construtor exigido pelo JPA
     }
-
     public UserEntity(
             UUID id,
             String username,
             String email,
             String password,
-            String role,
-            OffsetDateTime createdAt,
-            OffsetDateTime updatedAt
+            UserRole role,
+            UUID companyId
     ) {
         this.id = id;
         this.username = username;
         this.email = email;
         this.password = password;
         this.role = role;
-        this.createdAt = createdAt;
-        this.updatedAt = updatedAt;
+        this.companyId = companyId;
     }
 
     public UUID getId() {
@@ -73,15 +63,11 @@ public class UserEntity {
         return password;
     }
 
-    public String getRole() {
+    public UserRole getRole() {
         return role;
     }
 
-    public OffsetDateTime getCreatedAt() {
-        return createdAt;
-    }
-
-    public OffsetDateTime getUpdatedAt() {
-        return updatedAt;
+    public UUID getCompanyId(){
+        return companyId;
     }
 }

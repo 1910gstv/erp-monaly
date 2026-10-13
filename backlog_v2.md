@@ -30,7 +30,7 @@ Plano de entrega para um ERP simples de estoque e vendas para pequenos comércio
 ### Atenções para o começo do trabalho
 
 - Revisar a migration de usuários antes de usá-la: os limites atuais de e-mail e senha são pequenos para os valores esperados; o cadastro também precisa armazenar hash de senha, não senha em texto puro.
-- Fechar o modelo de usuário e empresa, incluindo a chave estrangeira da empresa, unicidade por empresa e regras para usuários que pertencem a mais de uma empresa, caso isso venha a ser necessário.
+- No MVP, cada usuário pertence a uma única empresa e cada e-mail identifica uma única conta no sistema todo; suporte a usuários associados a múltiplas empresas fica para um card futuro, se necessário.
 - Manter o PostgreSQL como fonte da verdade para saldo e vendas. Redis, RabbitMQ, microsserviços e Kubernetes não são necessários para entregar o primeiro MVP.
 - Substituir endpoints de demonstração e respostas diretas de entidades por contratos de API estáveis, conforme os módulos forem implementados.
 
@@ -108,7 +108,7 @@ Plano de entrega para um ERP simples de estoque e vendas para pequenos comércio
   - Usuário tem vínculo obrigatório com empresa.
   - Schema tem chave estrangeira e índices/unicidade necessários.
   - Migration nova corrige limites de campos e não armazena senha em texto puro.
-  - Decisão sobre usuário em múltiplas empresas fica registrada; se necessário, vira card futuro.
+  - Usuários associados a múltiplas empresas ficam fora do MVP; esse suporte poderá ser avaliado em um card futuro.
 
 #### MON-006 — Finalizar cadastro de empresa
 - **Prioridade:** P0 | **Estimativa:** 3 pontos
@@ -415,4 +415,3 @@ Para manter o primeiro produto simples, não bloquear a entrega com:
 - É possível consultar vendas e itens com preço histórico.
 - Testes automatizados cobrem regras críticas, persistência, autenticação e isolamento entre empresas.
 - Outra pessoa consegue subir o projeto e repetir o fluxo usando a documentação.
-

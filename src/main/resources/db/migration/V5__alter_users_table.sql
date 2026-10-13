@@ -1,0 +1,7 @@
+ALTER TABLE users
+    ALTER COLUMN password TYPE VARCHAR(255),
+    ALTER COLUMN email TYPE VARCHAR(255),
+    ALTER COLUMN username TYPE VARCHAR(150);
+
+ALTER TABLE users 
+    ADD CONSTRAINT uq_users_email UNIQUE (email);
