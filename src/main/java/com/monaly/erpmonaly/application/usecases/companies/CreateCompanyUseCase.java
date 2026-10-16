@@ -56,7 +56,7 @@ public class CreateCompanyUseCase {
         return createdCompany;
     }
 
-    private String normalizeCNPJ(String cnpj){
+    public String normalizeCNPJ(String cnpj){
         return cnpj.replaceAll("\\D", "");
     }
 }
