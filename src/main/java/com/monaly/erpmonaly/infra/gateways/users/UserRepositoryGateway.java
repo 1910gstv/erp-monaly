@@ -43,7 +43,7 @@ public class UserRepositoryGateway implements UserGateway {
 
         UserEntity savedEntity;
         try {
-            savedEntity = userRepository.save(userEntity);
+            savedEntity = userRepository.saveAndFlush(userEntity);
         } catch (DataIntegrityViolationException exception) {
             if (isEmailUniquenessViolation(exception)) {
                 throw new DuplicationException("O email informado já existe, tente outro");

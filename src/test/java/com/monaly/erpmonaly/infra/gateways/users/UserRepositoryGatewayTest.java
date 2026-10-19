@@ -33,7 +33,7 @@ class UserRepositoryGatewayTest {
     @Test
     void translatesEmailUniqueConstraintViolationToDuplicationException() {
         DataIntegrityViolationException persistenceException = integrityViolation("uq_users_email");
-        when(userRepository.save(any(UserEntity.class))).thenThrow(persistenceException);
+        when(userRepository.saveAndFlush(any(UserEntity.class))).thenThrow(persistenceException);
 
         assertThrows(DuplicationException.class, () -> gateway.save(request()));
     }
@@ -41,7 +41,7 @@ class UserRepositoryGatewayTest {
     @Test
     void propagatesOtherIntegrityViolationsWithoutClassifyingThemAsEmailConflicts() {
         DataIntegrityViolationException persistenceException = integrityViolation("users_company_id_fkey");
-        when(userRepository.save(any(UserEntity.class))).thenThrow(persistenceException);
+        when(userRepository.saveAndFlush(any(UserEntity.class))).thenThrow(persistenceException);
 
         DataIntegrityViolationException thrown = assertThrows(
                 DataIntegrityViolationException.class,
