@@ -2,12 +2,17 @@ package com.monaly.erpmonaly.infra.persistence;
 
 import com.monaly.erpmonaly.domain.enums.UserRole;
 import jakarta.persistence.*;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
 
+import java.util.Collection;
+import java.util.List;
 import java.util.UUID;
 
 @Entity
 @Table(name = "users")
-public class UserEntity {
+public class UserEntity implements UserDetails { // <-- 1. Adicione implements UserDetails aqui
 
     @Id
     private UUID id;
@@ -31,6 +36,7 @@ public class UserEntity {
     protected UserEntity() {
         // Construtor exigido pelo JPA
     }
+
     public UserEntity(
             UUID id,
             String username,
@@ -47,27 +53,66 @@ public class UserEntity {
         this.companyId = companyId;
     }
 
+    // --- Métodos do UserDetails ---
+
+    @Override
+    public String getUsername() {
+        return email; // O Spring Security usa o e-mail para identificar o login
+    }
+
+    @Override
+    public String getPassword() {
+        return password;
+    }
+
+    @Override
+    public Collection<? extends GrantedAuthority> getAuthorities() {
+        // Retorna as roles/permissões do usuário mapeadas para o Spring Security
+        if (this.role == UserRole.ADMIN) {
+            return List.of(new SimpleGrantedAuthority("ROLE_ADMIN"), new SimpleGrantedAuthority("ROLE_USER"));
+        }
+        return List.of(new SimpleGrantedAuthority("ROLE_USER"));
+    }
+
+    @Override
+    public boolean isAccountNonExpired() {
+        return true;
+    }
+
+    @Override
+    public boolean isAccountNonLocked() {
+        return true;
+    }
+
+    @Override
+    public boolean isCredentialsNonExpired() {
+        return true;
+    }
+
+    @Override
+    public boolean isEnabled() {
+        return true;
+    }
+
+    // --- Seus Getters tradicionais ---
+
     public UUID getId() {
         return id;
     }
 
-    public String getUsername() {
-        return username;
+    public String getName() {
+        return username; // Retorna o nome da pessoa caso precise exibir na tela
     }
 
     public String getEmail() {
         return email;
     }
 
-    public String getPassword() {
-        return password;
-    }
-
     public UserRole getRole() {
         return role;
     }
 
-    public UUID getCompanyId(){
+    public UUID getCompanyId() {
         return companyId;
     }
 }
