@@ -1,10 +1,11 @@
-package com.monaly.erpmonaly.application.usecases.users;
+package com.monaly.erpmonaly.application.usecases.auth;
 
 import com.monaly.erpmonaly.application.DTOs.companies.CreateCompanyRequest;
 import com.monaly.erpmonaly.application.DTOs.users.CreateUserRequest;
 import com.monaly.erpmonaly.application.DTOs.users.CreateUserResponse;
 import com.monaly.erpmonaly.application.gateways.companies.CompanyGateway;
 import com.monaly.erpmonaly.application.gateways.users.UserGateway;
+import com.monaly.erpmonaly.application.usecases.auth.RegisterCompanyAdminUseCase;
 import com.monaly.erpmonaly.application.usecases.companies.CreateCompanyUseCase;
 import com.monaly.erpmonaly.domain.entities.companies.Company;
 import com.monaly.erpmonaly.domain.enums.UserRole;
@@ -25,7 +26,7 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-class CreateUserUseCaseTest {
+class RegisterCompanyAdminUseCaseTest {
 
     private static final String FORMATTED_CNPJ = "11.222.333/0001-81";
     private static final String NORMALIZED_CNPJ = "11222333000181";
@@ -37,7 +38,7 @@ class CreateUserUseCaseTest {
     private CompanyGateway companyGateway;
     private PasswordEncoder passwordEncoder;
     private CreateCompanyUseCase createCompanyUseCase;
-    private CreateUserUseCase useCase;
+    private RegisterCompanyAdminUseCase useCase;
 
     @BeforeEach
     void setUp() {
@@ -45,7 +46,7 @@ class CreateUserUseCaseTest {
         companyGateway = mock(CompanyGateway.class);
         passwordEncoder = mock(PasswordEncoder.class);
         createCompanyUseCase = mock(CreateCompanyUseCase.class);
-        useCase = new CreateUserUseCase(
+        useCase = new RegisterCompanyAdminUseCase(
                 userGateway,
                 companyGateway,
                 passwordEncoder,
@@ -69,7 +70,7 @@ class CreateUserUseCaseTest {
                 .thenReturn(new Company(COMPANY_ID, request.companyName(), NORMALIZED_CNPJ));
         when(userGateway.save(any(CreateUserRequest.class))).thenReturn(expectedResponse);
 
-        CreateUserResponse response = useCase.create(request);
+        CreateUserResponse response = useCase.register(request);
 
         assertEquals(expectedResponse, response);
         assertEquals(3, response.getClass().getRecordComponents().length);
@@ -100,7 +101,7 @@ class CreateUserUseCaseTest {
         CreateUserRequest request = request(UserRole.USER);
         when(userGateway.existsByEmail(request.email())).thenReturn(true);
 
-        assertThrows(DuplicationException.class, () -> useCase.create(request));
+        assertThrows(DuplicationException.class, () -> useCase.register(request));
 
         verify(passwordEncoder, never()).encode(any());
         verify(createCompanyUseCase, never()).normalizeCNPJ(any());
@@ -124,7 +125,7 @@ class CreateUserUseCaseTest {
                     baseRequest.companyId()
             );
 
-            assertThrows(IllegalArgumentException.class, () -> useCase.create(request), password);
+            assertThrows(IllegalArgumentException.class, () -> useCase.register(request), password);
         }
 
         verify(passwordEncoder, never()).encode(any());
@@ -141,7 +142,7 @@ class CreateUserUseCaseTest {
         when(companyGateway.findByCnpj(NORMALIZED_CNPJ))
                 .thenReturn(new Company(UUID.randomUUID(), request.companyName(), NORMALIZED_CNPJ));
 
-        assertThrows(RuntimeException.class, () -> useCase.create(request));
+        assertThrows(DuplicationException.class, () -> useCase.register(request));
 
         verify(createCompanyUseCase, never()).createCompany(any());
         verify(userGateway, never()).save(any());
@@ -157,7 +158,7 @@ class CreateUserUseCaseTest {
         when(createCompanyUseCase.createCompany(any()))
                 .thenThrow(new DuplicationException("Company already exists"));
 
-        assertThrows(DuplicationException.class, () -> useCase.create(request));
+        assertThrows(DuplicationException.class, () -> useCase.register(request));
 
         verify(userGateway, never()).save(any());
     }
@@ -174,7 +175,7 @@ class CreateUserUseCaseTest {
         when(userGateway.save(any(CreateUserRequest.class)))
                 .thenThrow(new IllegalStateException("User persistence failed"));
 
-        assertThrows(IllegalStateException.class, () -> useCase.create(request));
+        assertThrows(IllegalStateException.class, () -> useCase.register(request));
 
         verify(createCompanyUseCase).createCompany(
                 new CreateCompanyRequest(request.companyName(), request.cnpj())

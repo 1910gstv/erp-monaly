@@ -5,7 +5,9 @@ import com.monaly.erpmonaly.application.usecases.companies.CreateCompanyUseCase;
 import com.monaly.erpmonaly.application.usecases.companies.ListCompaniesUseCase;
 import com.monaly.erpmonaly.domain.entities.companies.Company;
 import com.monaly.erpmonaly.domain.exceptions.DuplicationException;
-import com.monaly.erpmonaly.shared.config.SecurityConfig;
+import com.monaly.erpmonaly.infra.persistence.UserRepository;
+import com.monaly.erpmonaly.infra.security.SecurityConfig;
+import com.monaly.erpmonaly.infra.security.TokenService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
@@ -13,6 +15,7 @@ import org.springframework.http.MediaType;
 import org.springframework.context.annotation.Import;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.security.test.context.support.WithMockUser;
 
 import java.util.UUID;
 
@@ -26,6 +29,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @WebMvcTest(CompaniesController.class)
 @Import(SecurityConfig.class)
+@WithMockUser(roles = "ADMIN")
 class CompaniesControllerTest {
 
     private static final String VALID_CNPJ = "11.222.333/0001-81";
@@ -38,6 +42,12 @@ class CompaniesControllerTest {
 
     @MockitoBean
     private ListCompaniesUseCase listCompaniesUseCase;
+
+    @MockitoBean
+    private TokenService tokenService;
+
+    @MockitoBean
+    private UserRepository userRepository;
 
     @Test
     void createsCompanyThroughHttpEndpoint() throws Exception {

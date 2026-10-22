@@ -1,4 +1,4 @@
-package com.monaly.erpmonaly.application.usecases.users;
+package com.monaly.erpmonaly.application.usecases.auth;
 
 import com.monaly.erpmonaly.application.DTOs.companies.CreateCompanyRequest;
 import com.monaly.erpmonaly.application.DTOs.users.CreateUserRequest;
@@ -14,13 +14,13 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
-public class CreateUserUseCase {
+public class RegisterCompanyAdminUseCase {
     private final UserGateway userGateway;
     private final CompanyGateway companyGateway;
     private final PasswordEncoder passwordEncoder;
     private final CreateCompanyUseCase createCompanyUseCase;
 
-    public CreateUserUseCase(UserGateway userGateway, CompanyGateway companyGateway, PasswordEncoder passwordEncoder, CreateCompanyUseCase createCompanyUseCase){
+    public RegisterCompanyAdminUseCase(UserGateway userGateway, CompanyGateway companyGateway, PasswordEncoder passwordEncoder, CreateCompanyUseCase createCompanyUseCase){
         this.userGateway = userGateway;
         this.companyGateway = companyGateway;
         this.passwordEncoder = passwordEncoder;
@@ -28,8 +28,7 @@ public class CreateUserUseCase {
     }
 
     @Transactional
-    public CreateUserResponse create(CreateUserRequest request){
-        // Buscar no banco de email já existe
+    public CreateUserResponse register(CreateUserRequest request){
         boolean emailExist = userGateway.existsByEmail(request.email());
         if(emailExist){
             throw new DuplicationException("O email informado já existe, tente outro");
@@ -42,16 +41,11 @@ public class CreateUserUseCase {
 
         String hashedPassword = passwordEncoder.encode(request.password());
 
-        // Buscar se o CNPJ já existe
         String normalizedCnpj = createCompanyUseCase.normalizeCNPJ(request.cnpj());
         Company findCompanyByCnpj = companyGateway.findByCnpj(normalizedCnpj);
 
         if(findCompanyByCnpj != null){
-        // Se existir, retorna erro dizendo que a empresa já existe e que apenas administradores podem criar usuários
-            //TODO: Se o usuário for do tipo ADMIN, ele pode criar outros usuários
-            //Capturar pelo token
-            System.out.println("Empresa já existe");
-            throw new RuntimeException("Essa empresa já existe, apenas administradores podem criar novos usuários");
+            throw new DuplicationException("Já existe uma empresa cadastrada com este CNPJ.");
         }
 
         CreateCompanyRequest companyRequest = new CreateCompanyRequest(request.companyName(), request.cnpj());
@@ -66,7 +60,6 @@ public class CreateUserUseCase {
                 request.companyName(),
                 createdCompany.getId()
         );
-        // Se der erro ao criar empresa ou usuário, ROLLBACK
 
       return userGateway.save(finalUser);
     };

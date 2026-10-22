@@ -1,10 +1,13 @@
-package com.monaly.erpmonaly.api.controllers.users;
+package com.monaly.erpmonaly.api.controllers;
 
 import com.monaly.erpmonaly.application.DTOs.users.CreateUserResponse;
-import com.monaly.erpmonaly.application.usecases.users.CreateUserUseCase;
+import com.monaly.erpmonaly.application.usecases.auth.RegisterCompanyAdminUseCase;
 import com.monaly.erpmonaly.domain.enums.UserRole;
 import com.monaly.erpmonaly.domain.exceptions.DuplicationException;
-import com.monaly.erpmonaly.shared.config.SecurityConfig;
+import com.monaly.erpmonaly.infra.persistence.UserRepository;
+import com.monaly.erpmonaly.infra.security.SecurityConfig;
+import com.monaly.erpmonaly.infra.security.TokenService;
+import org.springframework.security.authentication.AuthenticationManager;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
@@ -21,45 +24,54 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@WebMvcTest(UsersController.class)
+@WebMvcTest(AuthController.class)
 @Import(SecurityConfig.class)
-class UsersControllerTest {
+class AuthControllerTest {
 
     @Autowired
     private MockMvc mockMvc;
 
     @MockitoBean
-    private CreateUserUseCase createUserUseCase;
+    private RegisterCompanyAdminUseCase registerCompanyAdminUseCase;
+
+    @MockitoBean
+    private AuthenticationManager authenticationManager;
+
+    @MockitoBean
+    private UserRepository userRepository;
+
+    @MockitoBean
+    private TokenService tokenService;
 
     @Test
     void rejectsInvalidEmailBeforeCallingUseCase() throws Exception {
-        mockMvc.perform(post("/users/create")
+        mockMvc.perform(post("/auth/register")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(userRequest("invalid-email", "StrongPass1@", "USER")))
                 .andExpect(status().isBadRequest());
 
-        verify(createUserUseCase, never()).create(any());
+        verify(registerCompanyAdminUseCase, never()).register(any());
     }
 
     @Test
     void returnsConflictWhenEmailIsAlreadyInUse() throws Exception {
-        when(createUserUseCase.create(any()))
+        when(registerCompanyAdminUseCase.register(any()))
                 .thenThrow(new DuplicationException("O email informado já existe, tente outro"));
 
-        mockMvc.perform(post("/users/create")
+        mockMvc.perform(post("/auth/register")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(userRequest("admin@monaly.com", "StrongPass1@", "USER")))
                 .andExpect(status().isConflict());
 
-        verify(createUserUseCase).create(any());
+        verify(registerCompanyAdminUseCase).register(any());
     }
 
     @Test
     void returnsUserWithoutPasswordOrHash() throws Exception {
-        when(createUserUseCase.create(any()))
+        when(registerCompanyAdminUseCase.register(any()))
                 .thenReturn(new CreateUserResponse("Monaly Admin", "admin@monaly.com", UserRole.ADMIN));
 
-        mockMvc.perform(post("/users/create")
+        mockMvc.perform(post("/auth/register")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(userRequest("admin@monaly.com", "StrongPass1@", "USER")))
                 .andExpect(status().isOk())

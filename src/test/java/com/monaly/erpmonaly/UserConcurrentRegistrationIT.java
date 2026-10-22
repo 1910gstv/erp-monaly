@@ -151,7 +151,7 @@ class UserConcurrentRegistrationIT {
                 """.formatted(email, cnpj, companyName);
 
         HttpRequest request = HttpRequest.newBuilder()
-                .uri(URI.create("http://localhost:" + port + "/users/create"))
+                .uri(URI.create("http://localhost:" + port + "/auth/register"))
                 .header("Content-Type", "application/json")
                 .POST(HttpRequest.BodyPublishers.ofString(requestBody))
                 .build();
