@@ -2,12 +2,16 @@ package com.monaly.erpmonaly.api.controllers;
 
 import com.monaly.erpmonaly.application.DTOs.users.CreateUserResponse;
 import com.monaly.erpmonaly.application.usecases.auth.RegisterCompanyAdminUseCase;
+import com.monaly.erpmonaly.domain.DTO.AuthenticationDTO;
 import com.monaly.erpmonaly.domain.enums.UserRole;
 import com.monaly.erpmonaly.domain.exceptions.DuplicationException;
+import com.monaly.erpmonaly.infra.persistence.UserEntity;
 import com.monaly.erpmonaly.infra.persistence.UserRepository;
 import com.monaly.erpmonaly.infra.security.SecurityConfig;
 import com.monaly.erpmonaly.infra.security.TokenService;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
@@ -16,11 +20,14 @@ import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
+import java.util.UUID;
+
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -42,6 +49,47 @@ class AuthControllerTest {
 
     @MockitoBean
     private TokenService tokenService;
+
+    @Test
+    void loginWithValidCredentialsReturnsSignedToken() throws Exception {
+        UserEntity user = new UserEntity(
+                UUID.randomUUID(),
+                "Monaly Admin",
+                "admin@monaly.com",
+                "$2a$hashed-password",
+                UserRole.ADMIN,
+                UUID.randomUUID()
+        );
+        var authenticatedUser = UsernamePasswordAuthenticationToken.authenticated(
+                user,
+                null,
+                user.getAuthorities()
+        );
+        when(authenticationManager.authenticate(any())).thenReturn(authenticatedUser);
+        when(tokenService.generateToken(user)).thenReturn("signed-jwt");
+
+        mockMvc.perform(post("/auth/login")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(loginRequest("admin@monaly.com", "CorrectPass1@")))
+                .andExpect(status().isOk())
+                .andExpect(content().string("signed-jwt"));
+
+        verify(authenticationManager).authenticate(any());
+        verify(tokenService).generateToken(user);
+    }
+
+    @Test
+    void loginWithInvalidCredentialsReturnsUnauthorized() throws Exception {
+        when(authenticationManager.authenticate(any()))
+                .thenThrow(new BadCredentialsException("Bad credentials"));
+
+        mockMvc.perform(post("/auth/login")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(loginRequest("admin@monaly.com", "WrongPass1@")))
+                .andExpect(status().isUnauthorized());
+
+        verify(tokenService, never()).generateToken(any());
+    }
 
     @Test
     void rejectsInvalidEmailBeforeCallingUseCase() throws Exception {
@@ -93,5 +141,14 @@ class AuthControllerTest {
                   "companyName": "Mercado Monaly"
                 }
                 """.formatted(email, password, role);
+    }
+
+    private String loginRequest(String email, String password) {
+        return """
+                {
+                  "email": "%s",
+                  "password": "%s"
+                }
+                """.formatted(email, password);
     }
 }

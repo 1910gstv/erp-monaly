@@ -3,6 +3,7 @@ package com.monaly.erpmonaly.infra.exceptions;
 import com.monaly.erpmonaly.domain.exceptions.*;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -61,4 +62,9 @@ public class GlobalExceptionHandler {
                 .badRequest()
                 .body(errorResponse);
     }
+
+    @ExceptionHandler(BadCredentialsException.class)
+    public ResponseEntity<ErrorResponse> badCredentialsHandler(BadCredentialsException exception, WebRequest request){
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(new ErrorResponse(exception.getMessage(), LocalDateTime.now()));
+    };
 }

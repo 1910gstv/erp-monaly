@@ -5,31 +5,34 @@ import com.monaly.erpmonaly.application.usecases.companies.CreateCompanyUseCase;
 import com.monaly.erpmonaly.application.usecases.companies.ListCompaniesUseCase;
 import com.monaly.erpmonaly.domain.entities.companies.Company;
 import com.monaly.erpmonaly.domain.exceptions.DuplicationException;
+import com.monaly.erpmonaly.infra.persistence.UserEntity;
 import com.monaly.erpmonaly.infra.persistence.UserRepository;
 import com.monaly.erpmonaly.infra.security.SecurityConfig;
 import com.monaly.erpmonaly.infra.security.TokenService;
+import com.monaly.erpmonaly.shared.presentation.HealthController;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
-import org.springframework.http.MediaType;
 import org.springframework.context.annotation.Import;
+import org.springframework.http.MediaType;
+import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.security.test.context.support.WithMockUser;
 
 import java.util.UUID;
+import java.util.List;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@WebMvcTest(CompaniesController.class)
+@WebMvcTest(controllers = {CompaniesController.class, HealthController.class})
 @Import(SecurityConfig.class)
-@WithMockUser(roles = "ADMIN")
 class CompaniesControllerTest {
 
     private static final String VALID_CNPJ = "11.222.333/0001-81";
@@ -50,6 +53,7 @@ class CompaniesControllerTest {
     private UserRepository userRepository;
 
     @Test
+    @WithMockUser(roles = "ADMIN")
     void createsCompanyThroughHttpEndpoint() throws Exception {
         Company company = new Company(UUID.randomUUID(), "Mercado Monaly", "11222333000181");
         when(createCompanyUseCase.createCompany(any(CreateCompanyRequest.class))).thenReturn(company);
@@ -66,6 +70,7 @@ class CompaniesControllerTest {
     }
 
     @Test
+    @WithMockUser(roles = "ADMIN")
     void rejectsBlankName() throws Exception {
         mockMvc.perform(post("/companies/create")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -76,6 +81,7 @@ class CompaniesControllerTest {
     }
 
     @Test
+    @WithMockUser(roles = "ADMIN")
     void rejectsNameLongerThan150Characters() throws Exception {
         mockMvc.perform(post("/companies/create")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -86,6 +92,7 @@ class CompaniesControllerTest {
     }
 
     @Test
+    @WithMockUser(roles = "ADMIN")
     void rejectsInvalidCnpj() throws Exception {
         mockMvc.perform(post("/companies/create")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -96,6 +103,7 @@ class CompaniesControllerTest {
     }
 
     @Test
+    @WithMockUser(roles = "ADMIN")
     void returnsConflictWhenCnpjAlreadyExists() throws Exception {
         when(createCompanyUseCase.createCompany(any(CreateCompanyRequest.class)))
                 .thenThrow(new DuplicationException("Company already exists"));
@@ -106,6 +114,43 @@ class CompaniesControllerTest {
                 .andExpect(status().isConflict());
 
         verify(createCompanyUseCase).createCompany(any(CreateCompanyRequest.class));
+    }
+
+    @Test
+    void allowsUnauthenticatedHealthCheck() throws Exception {
+        mockMvc.perform(get("/health"))
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    void rejectsUnauthenticatedAccessToProtectedCompaniesRoute() throws Exception {
+        mockMvc.perform(get("/companies/list"))
+                .andExpect(status().isUnauthorized());
+
+        verify(listCompaniesUseCase, never()).listAll();
+    }
+
+    @Test
+    void allowsAuthenticatedAccessToProtectedCompaniesRouteWithBearerToken() throws Exception {
+        String token = "valid-test-token";
+        String email = "admin@monaly.com";
+        UserEntity authenticatedUser = new UserEntity(
+                UUID.randomUUID(),
+                "Monaly Admin",
+                email,
+                "$2a$hashed-password",
+                com.monaly.erpmonaly.domain.enums.UserRole.ADMIN,
+                UUID.randomUUID()
+        );
+        when(tokenService.validateToken(token)).thenReturn(email);
+        when(userRepository.findByEmail(email)).thenReturn(authenticatedUser);
+        when(listCompaniesUseCase.listAll()).thenReturn(List.of());
+
+        mockMvc.perform(get("/companies/list")
+                        .header("Authorization", "Bearer " + token))
+                .andExpect(status().isOk());
+
+        verify(listCompaniesUseCase).listAll();
     }
 
     private String companyRequest(String name, String cnpj) {
