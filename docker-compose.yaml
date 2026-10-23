@@ -5,9 +5,9 @@ services:
     ports:
       - "8080:8080"
     environment:
-      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/monaly
-      SPRING_DATASOURCE_USERNAME: monaly
-      SPRING_DATASOURCE_PASSWORD: monaly
+      SPRING_DATASOURCE_URL: "jdbc:postgresql://postgres:5432/monaly"
+      SPRING_DATASOURCE_USERNAME: "${SPRING_DATASOURCE_USERNAME}"
+      SPRING_DATASOURCE_PASSWORD: "${SPRING_DATASOURCE_PASSWORD}"
 
       SPRING_DATA_REDIS_HOST: redis
       SPRING_DATA_REDIS_PORT: 6379
@@ -16,6 +16,8 @@ services:
       SPRING_RABBITMQ_PORT: 5672
       SPRING_RABBITMQ_USERNAME: monaly
       SPRING_RABBITMQ_PASSWORD: monaly
+
+      API_SECURITY_TOKEN_SECRET: "${API_SECURITY_TOKEN_SECRET}"
 
     depends_on:
       postgres:
