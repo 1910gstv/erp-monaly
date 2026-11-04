@@ -9,6 +9,7 @@ import org.springframework.stereotype.Repository;
 
 import java.time.OffsetDateTime;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 @Repository
@@ -66,5 +67,10 @@ public class CompanyRepositoryGateway implements CompanyGateway {
                 finded.getName(),
                 finded.getCnpj()
         );
+    }
+    
+    @Override
+    public Optional<CompanyEntity> findById(UUID company_id){
+        return companyRepository.findById(company_id);
     }
 }

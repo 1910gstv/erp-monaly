@@ -26,8 +26,10 @@ public class SecurityConfig {
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/health", "/readyz", "/livez").permitAll()
-                        .requestMatchers(HttpMethod.POST, "/auth/login", "/auth/register").permitAll()
+                        .requestMatchers("/auth/login", "/auth/register").permitAll()
                         .requestMatchers("/companies/*/users").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.PUT,"/companies/*").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.PATCH,"/companies/*").hasRole("ADMIN")
                         .requestMatchers("/companies/**", "/users/**").authenticated()
                         .anyRequest().authenticated()
                 )
