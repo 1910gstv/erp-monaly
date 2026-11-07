@@ -27,7 +27,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/health", "/readyz", "/livez").permitAll()
                         .requestMatchers("/auth/login", "/auth/register").permitAll()
-                        .requestMatchers("/companies/*/users").hasRole("ADMIN")
+                        .requestMatchers("/companies/*/users/create").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.PUT,"/companies/*").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.PATCH,"/companies/*").hasRole("ADMIN")
                         .requestMatchers("/companies/**", "/users/**").authenticated()

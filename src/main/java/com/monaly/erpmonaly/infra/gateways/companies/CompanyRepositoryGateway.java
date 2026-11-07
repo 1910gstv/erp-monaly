@@ -73,4 +73,21 @@ public class CompanyRepositoryGateway implements CompanyGateway {
     public Optional<CompanyEntity> findById(UUID company_id){
         return companyRepository.findById(company_id);
     }
+
+    @Override
+    public Company editCompany(UUID id, CreateCompanyRequest request) {
+        OffsetDateTime now = OffsetDateTime.now();
+
+        CompanyEntity entity = new CompanyEntity(
+                id,
+                request.name(),
+                request.cnpj(),
+                now,
+                now
+        );
+
+        CompanyEntity company = companyRepository.save(entity);
+
+        return new Company(company.getId(), company.getName(), company.getCnpj());
+    }
 }

@@ -13,4 +13,5 @@ public interface CompanyGateway {
     List<Company> listAll();
     Company findByCnpj(String tax_id);
     Optional<CompanyEntity> findById(UUID company_id);
+    Company editCompany(UUID id, CreateCompanyRequest request);
 }

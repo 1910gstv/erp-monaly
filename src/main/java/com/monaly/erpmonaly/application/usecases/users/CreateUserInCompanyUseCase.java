@@ -40,7 +40,7 @@ public class CreateUserInCompanyUseCase {
             throw new DuplicationException("Essa empresa não existe");
         }
 
-        if(userEntity.getCompanyId() != companyId || userEntity.getRole() != UserRole.ADMIN){
+        if(!userEntity.getCompanyId().equals(companyId) || !userEntity.getRole().equals(UserRole.ADMIN)){
             throw new Exception("Usuário não pertence a empresa informada e/ou usuário não é admin");
         }
 
