@@ -12,6 +12,7 @@ import com.monaly.erpmonaly.domain.enums.UserRole;
 import com.monaly.erpmonaly.domain.exceptions.DuplicationException;
 import com.monaly.erpmonaly.infra.persistence.CompanyEntity;
 import com.monaly.erpmonaly.infra.persistence.UserEntity;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -41,11 +42,9 @@ public class CreateUserInCompanyUseCase {
         }
 
         if(!userEntity.getCompanyId().equals(companyId) || !userEntity.getRole().equals(UserRole.ADMIN)){
-            throw new Exception("Usuário não pertence a empresa informada e/ou usuário não é admin");
+            throw new AccessDeniedException("Usuário não pertence à empresa informada ou não é administrador");
         }
 
-        System.out.println(userEntity.getCompanyId());
-        System.out.println(userEntity.getRole());
         boolean emailExist = userGateway.existsByEmail(request.email());
         if(emailExist){
             throw new DuplicationException("O email informado já existe, tente outro");

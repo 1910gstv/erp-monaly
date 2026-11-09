@@ -3,9 +3,14 @@ package com.monaly.erpmonaly.application.usecases.companies;
 import com.monaly.erpmonaly.application.DTOs.companies.CreateCompanyRequest;
 import com.monaly.erpmonaly.application.gateways.companies.CompanyGateway;
 import com.monaly.erpmonaly.domain.entities.companies.Company;
+import com.monaly.erpmonaly.domain.enums.UserRole;
+import com.monaly.erpmonaly.domain.exceptions.DuplicationException;
+import com.monaly.erpmonaly.infra.persistence.CompanyEntity;
 import com.monaly.erpmonaly.infra.persistence.UserEntity;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 
+import java.util.Optional;
 import java.util.UUID;
 
 @Service
@@ -16,8 +21,26 @@ public class EditCompanyUseCase {
         this.companyGateway = companyGateway;
     }
 
-    public Company editCompany(UUID id, CreateCompanyRequest request, UserEntity userEntity){
+    public Company editCompany(UUID id, CreateCompanyRequest request, UserEntity userEntity) {
+        Optional<CompanyEntity> findCompanyById = companyGateway.findById(id);
 
-        return companyGateway.editCompany(id, request);
+        if(findCompanyById.isEmpty()){
+            throw new DuplicationException("Essa empresa não existe");
+        }
+
+        if(!userEntity.getCompanyId().equals(id) || !userEntity.getRole().equals(UserRole.ADMIN)){
+            throw new AccessDeniedException("Usuário não pertence à empresa informada ou não é administrador");
+        }
+        String normalizedCnpj = normalizeCNPJ(request.cnpj());
+
+        CreateCompanyRequest newRequest = new CreateCompanyRequest(
+                request.name(),
+                normalizedCnpj
+        );
+        return companyGateway.editCompany(id, newRequest);
+    }
+
+    public String normalizeCNPJ(String cnpj){
+        return cnpj.replaceAll("\\D", "");
     }
 }

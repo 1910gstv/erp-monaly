@@ -3,6 +3,7 @@ package com.monaly.erpmonaly.infra.exceptions;
 import com.monaly.erpmonaly.domain.exceptions.*;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -33,6 +34,13 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ErrorResponse> validationHandler(ValidationException exception, WebRequest request){
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ErrorResponse(exception.getMessage(), exception.getFields(), LocalDateTime.now()));
     };
+
+    @ExceptionHandler(AccessDeniedException.class)
+    public ResponseEntity<ErrorResponse> accessDeniedHandler(AccessDeniedException exception) {
+        return ResponseEntity
+                .status(HttpStatus.FORBIDDEN)
+                .body(new ErrorResponse(exception.getMessage(), LocalDateTime.now()));
+    }
 
     @ExceptionHandler({Exception.class})
     public ResponseEntity<ErrorResponse> handleGenericException(Exception exception, WebRequest request){

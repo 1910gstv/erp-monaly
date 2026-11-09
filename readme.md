@@ -384,13 +384,16 @@ O isolamento entre tenants será uma preocupação importante da aplicação.
 
 O sistema utilizará Spring Security.
 
-Inicialmente teremos:
+Papéis implementados no MVP:
 
-```text
-ADMIN
-MANAGER
-EMPLOYEE
-```
+| Operação | Anônimo | `USER` | `ADMIN` |
+|---|---:|---:|---:|
+| Cadastrar empresa e primeiro administrador (`POST /auth/register`) | Permitido; o servidor atribui `ADMIN` | Não aplicável | Não aplicável |
+| Criar usuário em uma empresa (`POST /companies/{companyId}/users/create`) | `401` | `403` | Permitido na própria empresa; o administrador escolhe `USER` ou `ADMIN` para a nova conta |
+| Editar empresa (`PUT /companies/{id}/edit`) | `401` | `403` | Permitido na própria empresa |
+| Acessar demais rotas privadas | `401` | Permitido quando autenticado | Permitido quando autenticado |
+
+O papel que autoriza uma operação é obtido da identidade autenticada pelo Spring Security. O papel informado no cadastro de usuário define somente a nova conta; não concede permissões ao solicitante.
 
 O fluxo será:
 
