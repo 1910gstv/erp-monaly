@@ -50,12 +50,12 @@ public class CompaniesController {
     }
 
     @GetMapping("/list")
-    public List<Company> listAll(){
-        return listCompaniesUseCase.listAll();
+    public List<Company> listAll(@AuthenticationPrincipal UserEntity userEntity) throws Exception {
+        return listCompaniesUseCase.listAll(userEntity);
     }
 
-    @PutMapping("/{id}/edit")
-    public Company edit(@PathVariable UUID id, @Valid @RequestBody CreateCompanyRequest request, @AuthenticationPrincipal UserEntity userEntity) throws Exception {
-        return editCompanyUseCase.editCompany(id, request, userEntity);
+    @PutMapping("/edit/me")
+    public Company edit(@Valid @RequestBody CreateCompanyRequest request, @AuthenticationPrincipal UserEntity userEntity) throws Exception {
+        return editCompanyUseCase.editCompany(request, userEntity);
     }
 }

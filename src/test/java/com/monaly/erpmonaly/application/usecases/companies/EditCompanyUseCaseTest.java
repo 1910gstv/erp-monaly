@@ -4,15 +4,11 @@ import com.monaly.erpmonaly.application.DTOs.companies.CreateCompanyRequest;
 import com.monaly.erpmonaly.application.gateways.companies.CompanyGateway;
 import com.monaly.erpmonaly.domain.entities.companies.Company;
 import com.monaly.erpmonaly.domain.enums.UserRole;
-import com.monaly.erpmonaly.domain.exceptions.DuplicationException;
-import com.monaly.erpmonaly.infra.persistence.CompanyEntity;
 import com.monaly.erpmonaly.infra.persistence.UserEntity;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.security.access.AccessDeniedException;
 
-import java.time.OffsetDateTime;
-import java.util.Optional;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -37,7 +33,6 @@ class EditCompanyUseCaseTest {
     void setUp() {
         companyGateway = mock(CompanyGateway.class);
         useCase = new EditCompanyUseCase(companyGateway);
-        when(companyGateway.findById(COMPANY_ID)).thenReturn(Optional.of(company()));
     }
 
     @Test
@@ -47,7 +42,7 @@ class EditCompanyUseCaseTest {
         Company updated = new Company(COMPANY_ID, "Updated Company", NORMALIZED_CNPJ);
         when(companyGateway.editCompany(eq(COMPANY_ID), any(CreateCompanyRequest.class))).thenReturn(updated);
 
-        Company result = useCase.editCompany(COMPANY_ID, request, admin);
+        Company result = useCase.editCompany(request, admin);
 
         assertEquals(updated, result);
         verify(companyGateway).editCompany(
@@ -60,38 +55,25 @@ class EditCompanyUseCaseTest {
         UserEntity user = authenticatedUser(UserRole.USER, COMPANY_ID);
 
         assertThrows(AccessDeniedException.class,
-                () -> useCase.editCompany(COMPANY_ID,
+                () -> useCase.editCompany(
                         new CreateCompanyRequest("Updated Company", FORMATTED_CNPJ), user));
 
         verify(companyGateway, never()).editCompany(any(), any());
     }
 
     @Test
-    void adminCannotEditAnotherCompany() {
-        UserEntity admin = authenticatedUser(UserRole.ADMIN, UUID.randomUUID());
+    void updatesCompanyIdentifiedByAuthenticatedUsersCompanyId() {
+        UUID authenticatedCompanyId = UUID.randomUUID();
+        UserEntity admin = authenticatedUser(UserRole.ADMIN, authenticatedCompanyId);
+        CreateCompanyRequest request = new CreateCompanyRequest("Updated Company", FORMATTED_CNPJ);
+        when(companyGateway.editCompany(eq(authenticatedCompanyId), any(CreateCompanyRequest.class)))
+                .thenReturn(new Company(authenticatedCompanyId, "Updated Company", NORMALIZED_CNPJ));
 
-        assertThrows(AccessDeniedException.class,
-                () -> useCase.editCompany(COMPANY_ID,
-                        new CreateCompanyRequest("Updated Company", FORMATTED_CNPJ), admin));
+        useCase.editCompany(request, admin);
 
-        verify(companyGateway, never()).editCompany(any(), any());
-    }
-
-    @Test
-    void cannotEditUnknownCompany() {
-        when(companyGateway.findById(COMPANY_ID)).thenReturn(Optional.empty());
-        UserEntity admin = authenticatedUser(UserRole.ADMIN, COMPANY_ID);
-
-        assertThrows(DuplicationException.class,
-                () -> useCase.editCompany(COMPANY_ID,
-                        new CreateCompanyRequest("Updated Company", FORMATTED_CNPJ), admin));
-
-        verify(companyGateway, never()).editCompany(any(), any());
-    }
-
-    private CompanyEntity company() {
-        OffsetDateTime now = OffsetDateTime.now();
-        return new CompanyEntity(COMPANY_ID, "Mercado Monaly", NORMALIZED_CNPJ, now, now);
+        verify(companyGateway).editCompany(
+                eq(authenticatedCompanyId),
+                eq(new CreateCompanyRequest("Updated Company", NORMALIZED_CNPJ)));
     }
 
     private UserEntity authenticatedUser(UserRole role, UUID companyId) {

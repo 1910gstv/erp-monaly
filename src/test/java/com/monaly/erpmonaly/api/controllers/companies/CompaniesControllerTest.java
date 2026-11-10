@@ -141,7 +141,7 @@ class CompaniesControllerTest {
         mockMvc.perform(get("/companies/list"))
                 .andExpect(status().isUnauthorized());
 
-        verify(listCompaniesUseCase, never()).listAll();
+        verify(listCompaniesUseCase, never()).listAll(any(UserEntity.class));
     }
 
     @Test
@@ -158,26 +158,26 @@ class CompaniesControllerTest {
         );
         when(tokenService.validateToken(token)).thenReturn(email);
         when(userRepository.findByEmail(email)).thenReturn(authenticatedUser);
-        when(listCompaniesUseCase.listAll()).thenReturn(List.of());
+        when(listCompaniesUseCase.listAll(authenticatedUser)).thenReturn(List.of());
 
         mockMvc.perform(get("/companies/list")
                         .header("Authorization", "Bearer " + token))
                 .andExpect(status().isOk());
 
-        verify(listCompaniesUseCase).listAll();
+        verify(listCompaniesUseCase).listAll(authenticatedUser);
     }
 
     @Test
     void authenticatedUserCanAccessNonAdministrativeCompanyRoute() throws Exception {
         UserEntity user = authenticatedUser(UserRole.USER, UUID.randomUUID());
         authenticate(user);
-        when(listCompaniesUseCase.listAll()).thenReturn(List.of());
+        when(listCompaniesUseCase.listAll(user)).thenReturn(List.of());
 
         mockMvc.perform(get("/companies/list")
                         .header("Authorization", "Bearer test-token"))
                 .andExpect(status().isOk());
 
-        verify(listCompaniesUseCase).listAll();
+        verify(listCompaniesUseCase).listAll(user);
     }
 
     @Test
@@ -247,31 +247,28 @@ class CompaniesControllerTest {
 
     @Test
     void unauthenticatedRequestCannotEditCompany() throws Exception {
-        UUID companyId = UUID.randomUUID();
-
-        mockMvc.perform(put("/companies/{companyId}/edit", companyId)
+        mockMvc.perform(put("/companies/edit/me")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(companyRequest("Updated Company", VALID_CNPJ)))
                 .andExpect(status().isUnauthorized());
 
         verify(editCompanyUseCase, never()).editCompany(
-                any(UUID.class), any(CreateCompanyRequest.class), any(UserEntity.class));
+                any(CreateCompanyRequest.class), any(UserEntity.class));
     }
 
     @Test
     void authenticatedNonAdministratorCannotEditCompany() throws Exception {
-        UUID companyId = UUID.randomUUID();
-        UserEntity user = authenticatedUser(UserRole.USER, companyId);
+        UserEntity user = authenticatedUser(UserRole.USER, UUID.randomUUID());
         authenticate(user);
 
-        mockMvc.perform(put("/companies/{companyId}/edit", companyId)
+        mockMvc.perform(put("/companies/edit/me")
                         .header("Authorization", "Bearer test-token")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(companyRequest("Updated Company", VALID_CNPJ)))
                 .andExpect(status().isForbidden());
 
         verify(editCompanyUseCase, never()).editCompany(
-                any(UUID.class), any(CreateCompanyRequest.class), any(UserEntity.class));
+                any(CreateCompanyRequest.class), any(UserEntity.class));
     }
 
     @Test
@@ -281,29 +278,28 @@ class CompaniesControllerTest {
         authenticate(admin);
         Company updatedCompany = new Company(companyId, "Updated Company", "11222333000181");
         when(editCompanyUseCase.editCompany(
-                eq(companyId), any(CreateCompanyRequest.class), eq(admin)))
+                any(CreateCompanyRequest.class), eq(admin)))
                 .thenReturn(updatedCompany);
 
-        mockMvc.perform(put("/companies/{companyId}/edit", companyId)
+        mockMvc.perform(put("/companies/edit/me")
                         .header("Authorization", "Bearer test-token")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(companyRequest("Updated Company", VALID_CNPJ)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.name").value("Updated Company"));
 
-        verify(editCompanyUseCase).editCompany(eq(companyId), any(CreateCompanyRequest.class), eq(admin));
+        verify(editCompanyUseCase).editCompany(any(CreateCompanyRequest.class), eq(admin));
     }
 
     @Test
     void accessDeniedByCompanyUseCaseIsReturnedAsForbidden() throws Exception {
-        UUID companyId = UUID.randomUUID();
         UserEntity admin = authenticatedUser(UserRole.ADMIN, UUID.randomUUID());
         authenticate(admin);
         when(editCompanyUseCase.editCompany(
-                eq(companyId), any(CreateCompanyRequest.class), eq(admin)))
+                any(CreateCompanyRequest.class), eq(admin)))
                 .thenThrow(new AccessDeniedException("Not allowed"));
 
-        mockMvc.perform(put("/companies/{companyId}/edit", companyId)
+        mockMvc.perform(put("/companies/edit/me")
                         .header("Authorization", "Bearer test-token")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(companyRequest("Updated Company", VALID_CNPJ)))
@@ -312,18 +308,17 @@ class CompaniesControllerTest {
 
     @Test
     void rejectsInvalidCompanyEditRequestBeforeCallingUseCase() throws Exception {
-        UUID companyId = UUID.randomUUID();
-        UserEntity admin = authenticatedUser(UserRole.ADMIN, companyId);
+        UserEntity admin = authenticatedUser(UserRole.ADMIN, UUID.randomUUID());
         authenticate(admin);
 
-        mockMvc.perform(put("/companies/{companyId}/edit", companyId)
+        mockMvc.perform(put("/companies/edit/me")
                         .header("Authorization", "Bearer test-token")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(companyRequest(" ", VALID_CNPJ)))
                 .andExpect(status().isBadRequest());
 
         verify(editCompanyUseCase, never()).editCompany(
-                any(UUID.class), any(CreateCompanyRequest.class), any(UserEntity.class));
+                any(CreateCompanyRequest.class), any(UserEntity.class));
     }
 
     private void authenticate(UserEntity user) {

@@ -21,14 +21,9 @@ public class EditCompanyUseCase {
         this.companyGateway = companyGateway;
     }
 
-    public Company editCompany(UUID id, CreateCompanyRequest request, UserEntity userEntity) {
-        Optional<CompanyEntity> findCompanyById = companyGateway.findById(id);
-
-        if(findCompanyById.isEmpty()){
-            throw new DuplicationException("Essa empresa não existe");
-        }
-
-        if(!userEntity.getCompanyId().equals(id) || !userEntity.getRole().equals(UserRole.ADMIN)){
+    public Company editCompany(CreateCompanyRequest request, UserEntity userEntity) {
+        UUID companyId = userEntity.getCompanyId();
+        if(!userEntity.getRole().equals(UserRole.ADMIN)){
             throw new AccessDeniedException("Usuário não pertence à empresa informada ou não é administrador");
         }
         String normalizedCnpj = normalizeCNPJ(request.cnpj());
@@ -37,7 +32,7 @@ public class EditCompanyUseCase {
                 request.name(),
                 normalizedCnpj
         );
-        return companyGateway.editCompany(id, newRequest);
+        return companyGateway.editCompany(companyId, newRequest);
     }
 
     public String normalizeCNPJ(String cnpj){

@@ -3,14 +3,17 @@ package com.monaly.erpmonaly.infra.gateways.users;
 import com.monaly.erpmonaly.application.DTOs.users.CreateUserRequest;
 import com.monaly.erpmonaly.application.DTOs.users.CreateUserResponse;
 import com.monaly.erpmonaly.application.gateways.users.UserGateway;
+import com.monaly.erpmonaly.domain.entities.companies.Company;
 import com.monaly.erpmonaly.domain.entities.users.User;
 import com.monaly.erpmonaly.domain.exceptions.DuplicationException;
+import com.monaly.erpmonaly.infra.persistence.CompanyEntity;
 import com.monaly.erpmonaly.infra.persistence.UserEntity;
 import com.monaly.erpmonaly.infra.persistence.UserRepository;
 import org.hibernate.exception.ConstraintViolationException;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
 import java.util.UUID;
 
 @Repository
@@ -61,6 +64,20 @@ public class UserRepositoryGateway implements UserGateway {
 
     public boolean existsByEmail(String email){
         return userRepository.existsByEmail(email);
+    }
+
+    @Override
+    public List<User> findAll(UUID company_id) {
+        List<UserEntity> users = userRepository.findAllUsersByCompanyId(company_id);
+        return users.stream().map(userEntity -> new User(
+                userEntity.getId(),
+                userEntity.getUsername(),
+                userEntity.getEmail(),
+                "",
+                userEntity.getRole(),
+                userEntity.getCompanyId()
+
+        )).toList();
     }
 
     private boolean isEmailUniquenessViolation(Throwable exception) {
