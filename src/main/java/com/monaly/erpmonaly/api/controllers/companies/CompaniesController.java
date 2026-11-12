@@ -41,12 +41,12 @@ public class CompaniesController {
         return createCompanyUseCase.createCompany(request);
     }
 
-    @PostMapping("/{companyId}/users/create")
-    public CreateUserResponse createUser(@PathVariable UUID companyId,
+    @PostMapping("/me/users/create")
+    public CreateUserResponse createUser(
                                          @Valid @RequestBody CreateUserInCompanyRequest request,
                                          @AuthenticationPrincipal UserEntity userEntity
                                          ) throws Exception {
-        return createUserInCompanyUseCase.createUser(request, companyId, userEntity);
+        return createUserInCompanyUseCase.createUser(request, userEntity);
     }
 
     @GetMapping("/list")

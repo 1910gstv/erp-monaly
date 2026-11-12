@@ -30,6 +30,7 @@ public class SecurityConfig {
                         .requestMatchers("/companies/*/users/create").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.PUT,"/companies/edit/me").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.PATCH,"/companies/*").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.GET,"/companies/list").hasRole("MASTER")
                         .requestMatchers("/companies/**", "/users/**").authenticated()
                         .anyRequest().authenticated()
                 )

@@ -10,5 +10,6 @@ import java.util.UUID;
 public interface UserGateway {
     CreateUserResponse save(CreateUserRequest request);
     boolean existsByEmail(String email);
+    List<User> findAll();
     List<User> findAll(UUID company_id);
 }

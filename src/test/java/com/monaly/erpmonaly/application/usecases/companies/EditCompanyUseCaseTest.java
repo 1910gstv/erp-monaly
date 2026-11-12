@@ -62,6 +62,17 @@ class EditCompanyUseCaseTest {
     }
 
     @Test
+    void masterCannotEditCompanyThroughCompanyAdminOperation() {
+        UserEntity master = authenticatedUser(UserRole.MASTER, COMPANY_ID);
+
+        assertThrows(AccessDeniedException.class,
+                () -> useCase.editCompany(
+                        new CreateCompanyRequest("Updated Company", FORMATTED_CNPJ), master));
+
+        verify(companyGateway, never()).editCompany(any(), any());
+    }
+
+    @Test
     void updatesCompanyIdentifiedByAuthenticatedUsersCompanyId() {
         UUID authenticatedCompanyId = UUID.randomUUID();
         UserEntity admin = authenticatedUser(UserRole.ADMIN, authenticatedCompanyId);

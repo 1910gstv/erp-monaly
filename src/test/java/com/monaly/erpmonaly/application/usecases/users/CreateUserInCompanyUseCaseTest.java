@@ -64,7 +64,7 @@ class CreateUserInCompanyUseCaseTest {
         CreateUserInCompanyRequest request = request(UserRole.USER);
         UserEntity admin = authenticatedUser(UserRole.ADMIN, COMPANY_ID);
 
-        CreateUserResponse response = useCase.createUser(request, COMPANY_ID, admin);
+        CreateUserResponse response = useCase.createUser(request, admin);
 
         assertEquals(UserRole.USER, response.role());
         var savedRequest = org.mockito.ArgumentCaptor.forClass(CreateUserRequest.class);
@@ -79,7 +79,7 @@ class CreateUserInCompanyUseCaseTest {
         CreateUserInCompanyRequest request = request(UserRole.ADMIN);
         UserEntity admin = authenticatedUser(UserRole.ADMIN, COMPANY_ID);
 
-        CreateUserResponse response = useCase.createUser(request, COMPANY_ID, admin);
+        CreateUserResponse response = useCase.createUser(request, admin);
 
         assertEquals(UserRole.ADMIN, response.role());
         var savedRequest = org.mockito.ArgumentCaptor.forClass(CreateUserRequest.class);
@@ -92,7 +92,7 @@ class CreateUserInCompanyUseCaseTest {
         UserEntity user = authenticatedUser(UserRole.USER, COMPANY_ID);
 
         assertThrows(AccessDeniedException.class,
-                () -> useCase.createUser(request(UserRole.ADMIN), COMPANY_ID, user));
+                () -> useCase.createUser(request(UserRole.ADMIN), user));
 
         verify(userGateway, never()).existsByEmail(any());
         verify(userGateway, never()).save(any());
@@ -100,14 +100,28 @@ class CreateUserInCompanyUseCaseTest {
     }
 
     @Test
-    void adminCannotCreateUserInAnotherCompany() {
-        UserEntity admin = authenticatedUser(UserRole.ADMIN, UUID.randomUUID());
+    void adminCannotCreateMasterAccount() {
+        UserEntity admin = authenticatedUser(UserRole.ADMIN, COMPANY_ID);
 
         assertThrows(AccessDeniedException.class,
-                () -> useCase.createUser(request(UserRole.USER), COMPANY_ID, admin));
+                () -> useCase.createUser(request(UserRole.MASTER), admin));
 
         verify(userGateway, never()).existsByEmail(any());
         verify(userGateway, never()).save(any());
+        verify(passwordEncoder, never()).encode(any());
+    }
+
+    @Test
+    void masterCanCreateMasterAccount() throws Exception {
+        UserEntity master = authenticatedUser(UserRole.MASTER, COMPANY_ID);
+
+        CreateUserResponse response = useCase.createUser(request(UserRole.MASTER), master);
+
+        assertEquals(UserRole.MASTER, response.role());
+        var savedRequest = org.mockito.ArgumentCaptor.forClass(CreateUserRequest.class);
+        verify(userGateway).save(savedRequest.capture());
+        assertEquals(UserRole.MASTER, savedRequest.getValue().role());
+        assertEquals(COMPANY_ID, savedRequest.getValue().companyId());
     }
 
     @Test
@@ -116,7 +130,7 @@ class CreateUserInCompanyUseCaseTest {
         UserEntity admin = authenticatedUser(UserRole.ADMIN, COMPANY_ID);
 
         assertThrows(DuplicationException.class,
-                () -> useCase.createUser(request(UserRole.USER), COMPANY_ID, admin));
+                () -> useCase.createUser(request(UserRole.USER), admin));
 
         verify(userGateway, never()).existsByEmail(any());
         verify(userGateway, never()).save(any());

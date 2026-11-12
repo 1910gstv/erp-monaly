@@ -3,6 +3,7 @@ package com.monaly.erpmonaly.application.usecases.users;
 import com.monaly.erpmonaly.application.gateways.companies.CompanyGateway;
 import com.monaly.erpmonaly.application.gateways.users.UserGateway;
 import com.monaly.erpmonaly.domain.entities.users.User;
+import com.monaly.erpmonaly.domain.enums.UserRole;
 import com.monaly.erpmonaly.infra.persistence.UserEntity;
 import org.springframework.stereotype.Service;
 
@@ -19,6 +20,9 @@ public class ListUsersByCompanyUseCase {
     }
 
     public List<User> listAllUsersByCompany(UserEntity userEntity){
+        if (userEntity.getRole() == UserRole.MASTER) {
+            return userGateway.findAll();
+        }
         return userGateway.findAll(userEntity.getCompanyId());
     }
 }

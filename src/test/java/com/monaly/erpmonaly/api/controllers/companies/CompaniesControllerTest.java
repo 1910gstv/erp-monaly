@@ -145,20 +145,17 @@ class CompaniesControllerTest {
     }
 
     @Test
-    void allowsAuthenticatedAccessToProtectedCompaniesRouteWithBearerToken() throws Exception {
+    void masterCanListCompaniesAcrossTenants() throws Exception {
         String token = "valid-test-token";
-        String email = "admin@monaly.com";
-        UserEntity authenticatedUser = new UserEntity(
-                UUID.randomUUID(),
-                "Monaly Admin",
-                email,
-                "$2a$hashed-password",
-                com.monaly.erpmonaly.domain.enums.UserRole.ADMIN,
-                UUID.randomUUID()
-        );
+        String email = "master@monaly.com";
+        UserEntity authenticatedUser = authenticatedUser(UserRole.MASTER, UUID.randomUUID());
         when(tokenService.validateToken(token)).thenReturn(email);
         when(userRepository.findByEmail(email)).thenReturn(authenticatedUser);
-        when(listCompaniesUseCase.listAll(authenticatedUser)).thenReturn(List.of());
+        List<Company> companies = List.of(
+                new Company(UUID.randomUUID(), "Company A", "11111111111111"),
+                new Company(UUID.randomUUID(), "Company B", "22222222222222")
+        );
+        when(listCompaniesUseCase.listAll(authenticatedUser)).thenReturn(companies);
 
         mockMvc.perform(get("/companies/list")
                         .header("Authorization", "Bearer " + token))
@@ -168,27 +165,38 @@ class CompaniesControllerTest {
     }
 
     @Test
-    void authenticatedUserCanAccessNonAdministrativeCompanyRoute() throws Exception {
-        UserEntity user = authenticatedUser(UserRole.USER, UUID.randomUUID());
-        authenticate(user);
-        when(listCompaniesUseCase.listAll(user)).thenReturn(List.of());
+    void administratorCannotListCompaniesAcrossTenants() throws Exception {
+        UserEntity admin = authenticatedUser(UserRole.ADMIN, UUID.randomUUID());
+        authenticate(admin);
 
         mockMvc.perform(get("/companies/list")
                         .header("Authorization", "Bearer test-token"))
-                .andExpect(status().isOk());
+                .andExpect(status().isForbidden());
 
-        verify(listCompaniesUseCase).listAll(user);
+        verify(listCompaniesUseCase, never()).listAll(any(UserEntity.class));
+    }
+
+    @Test
+    void regularUserCannotListCompaniesAcrossTenants() throws Exception {
+        UserEntity user = authenticatedUser(UserRole.USER, UUID.randomUUID());
+        authenticate(user);
+
+        mockMvc.perform(get("/companies/list")
+                        .header("Authorization", "Bearer test-token"))
+                .andExpect(status().isForbidden());
+
+        verify(listCompaniesUseCase, never()).listAll(any(UserEntity.class));
     }
 
     @Test
     void unauthenticatedRequestCannotCreateCompanyUser() throws Exception {
-        mockMvc.perform(post("/companies/{companyId}/users/create", UUID.randomUUID())
+        mockMvc.perform(post("/companies/me/users/create")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(createUserRequest(UserRole.ADMIN)))
                 .andExpect(status().isUnauthorized());
 
         verify(createUserInCompanyUseCase, never()).createUser(
-                any(CreateUserInCompanyRequest.class), any(UUID.class), any(UserEntity.class));
+                any(CreateUserInCompanyRequest.class), any(UserEntity.class));
     }
 
     @Test
@@ -196,14 +204,14 @@ class CompaniesControllerTest {
         UserEntity user = authenticatedUser(UserRole.USER, UUID.randomUUID());
         authenticate(user);
 
-        mockMvc.perform(post("/companies/{companyId}/users/create", user.getCompanyId())
+        mockMvc.perform(post("/companies/me/users/create")
                         .header("Authorization", "Bearer test-token")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(createUserRequest(UserRole.ADMIN)))
                 .andExpect(status().isForbidden());
 
         verify(createUserInCompanyUseCase, never()).createUser(
-                any(CreateUserInCompanyRequest.class), any(UUID.class), any(UserEntity.class));
+                any(CreateUserInCompanyRequest.class), any(UserEntity.class));
     }
 
     @Test
@@ -213,10 +221,10 @@ class CompaniesControllerTest {
         authenticate(admin);
         CreateUserResponse response = new CreateUserResponse("New Admin", "new-admin@monaly.com", UserRole.ADMIN);
         when(createUserInCompanyUseCase.createUser(
-                any(CreateUserInCompanyRequest.class), eq(companyId), eq(admin)))
+                any(CreateUserInCompanyRequest.class), eq(admin)))
                 .thenReturn(response);
 
-        mockMvc.perform(post("/companies/{companyId}/users/create", companyId)
+        mockMvc.perform(post("/companies/me/users/create")
                         .header("Authorization", "Bearer test-token")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(createUserRequest(UserRole.ADMIN)))
@@ -225,20 +233,18 @@ class CompaniesControllerTest {
 
         verify(createUserInCompanyUseCase).createUser(
                 org.mockito.ArgumentMatchers.argThat(request -> request.role() == UserRole.ADMIN),
-                eq(companyId),
                 eq(admin));
     }
 
     @Test
     void accessDeniedByUserCreationUseCaseIsReturnedAsForbidden() throws Exception {
-        UUID companyId = UUID.randomUUID();
         UserEntity admin = authenticatedUser(UserRole.ADMIN, UUID.randomUUID());
         authenticate(admin);
         when(createUserInCompanyUseCase.createUser(
-                any(CreateUserInCompanyRequest.class), eq(companyId), eq(admin)))
+                any(CreateUserInCompanyRequest.class), eq(admin)))
                 .thenThrow(new AccessDeniedException("Not allowed"));
 
-        mockMvc.perform(post("/companies/{companyId}/users/create", companyId)
+        mockMvc.perform(post("/companies/me/users/create")
                         .header("Authorization", "Bearer test-token")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(createUserRequest(UserRole.ADMIN)))
@@ -269,6 +275,22 @@ class CompaniesControllerTest {
 
         verify(editCompanyUseCase, never()).editCompany(
                 any(CreateCompanyRequest.class), any(UserEntity.class));
+    }
+
+    @Test
+    void masterCannotEditCompanyThroughCompanyAdminRoute() throws Exception {
+        UserEntity master = authenticatedUser(UserRole.MASTER, UUID.randomUUID());
+        authenticate(master);
+        when(editCompanyUseCase.editCompany(any(CreateCompanyRequest.class), eq(master)))
+                .thenThrow(new AccessDeniedException("Only company admins can edit company settings"));
+
+        mockMvc.perform(put("/companies/edit/me")
+                        .header("Authorization", "Bearer test-token")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(companyRequest("Updated Company", VALID_CNPJ)))
+                .andExpect(status().isForbidden());
+
+        verify(editCompanyUseCase).editCompany(any(CreateCompanyRequest.class), eq(master));
     }
 
     @Test

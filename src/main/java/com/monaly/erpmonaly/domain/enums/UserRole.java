@@ -2,7 +2,8 @@ package com.monaly.erpmonaly.domain.enums;
 
 public enum UserRole {
     ADMIN("admin"),
-    USER("user");
+    USER("user"),
+    MASTER("master");
 
     private final String role;
 

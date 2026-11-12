@@ -71,6 +71,15 @@ public class UserEntity implements UserDetails { // <-- 1. Adicione implements U
         if (this.role == UserRole.ADMIN) {
             return List.of(new SimpleGrantedAuthority("ROLE_ADMIN"), new SimpleGrantedAuthority("ROLE_USER"));
         }
+
+        if (this.role == UserRole.MASTER){
+            return List.of(
+                    new SimpleGrantedAuthority("ROLE_MASTER"),
+                    new SimpleGrantedAuthority("ROLE_ADMIN"),
+                    new SimpleGrantedAuthority("ROLE_USER")
+            );
+        }
+
         return List.of(new SimpleGrantedAuthority("ROLE_USER"));
     }
 

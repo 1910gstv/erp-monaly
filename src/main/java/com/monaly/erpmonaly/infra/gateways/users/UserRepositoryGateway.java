@@ -67,6 +67,18 @@ public class UserRepositoryGateway implements UserGateway {
     }
 
     @Override
+    public List<User> findAll() {
+        return userRepository.findAll().stream().map(userEntity -> new User(
+                userEntity.getId(),
+                userEntity.getUsername(),
+                userEntity.getEmail(),
+                "",
+                userEntity.getRole(),
+                userEntity.getCompanyId()
+        )).toList();
+    }
+
+    @Override
     public List<User> findAll(UUID company_id) {
         List<UserEntity> users = userRepository.findAllUsersByCompanyId(company_id);
         return users.stream().map(userEntity -> new User(

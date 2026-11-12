@@ -33,16 +33,21 @@ public class CreateUserInCompanyUseCase {
         this.createCompanyUseCase = createCompanyUseCase;
     }
 
-    public CreateUserResponse createUser(CreateUserInCompanyRequest request, UUID companyId, UserEntity userEntity) throws Exception {
-
+    public CreateUserResponse createUser(CreateUserInCompanyRequest request, UserEntity userEntity) throws Exception {
+        UUID companyId = userEntity.getCompanyId();
+        UserRole entityRole = userEntity.getRole();
         Optional<CompanyEntity> findCompanyById = companyGateway.findById(companyId);
 
         if(findCompanyById.isEmpty()){
             throw new DuplicationException("Essa empresa não existe");
         }
 
-        if(!userEntity.getCompanyId().equals(companyId) || !userEntity.getRole().equals(UserRole.ADMIN)){
-            throw new AccessDeniedException("Usuário não pertence à empresa informada ou não é administrador");
+        if(entityRole.equals(UserRole.USER)){
+            throw new AccessDeniedException("Usuário não é administrador");
+        }
+
+        if(request.role().equals(UserRole.MASTER) && !entityRole.equals(UserRole.MASTER)){
+            throw new AccessDeniedException("Apenas Usuários masters podem criar outros masters3");
         }
 
         boolean emailExist = userGateway.existsByEmail(request.email());

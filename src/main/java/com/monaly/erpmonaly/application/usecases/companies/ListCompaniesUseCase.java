@@ -22,8 +22,7 @@ public class ListCompaniesUseCase {
     public List<Company> listAll(UserEntity userEntity) throws CredentialException {
         UserRole userRole = userEntity.getRole();
 
-        // if(userRole != UserRole.MASTER) {
-        if(userRole != UserRole.ADMIN) {
+        if(userRole != UserRole.MASTER) {
             throw new CredentialException("Esse cargo não permite acesso");
         }
         return companyGateway.listAll();
