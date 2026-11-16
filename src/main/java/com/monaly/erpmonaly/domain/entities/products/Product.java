@@ -8,6 +8,7 @@ public record Product(
     UUID id,
     UUID companyId,
     String name,
+    String sku,
     BigDecimal price,
     String description,
     String state,
@@ -15,10 +16,11 @@ public record Product(
     Date updatedAt,
     Date deleted_at
 ){
-    public Product(UUID id, UUID companyId, String name, BigDecimal price, String description, String state, Date createdAt, Date updatedAt, Date deleted_at){
+    public Product(UUID id, UUID companyId, String name, String sku, BigDecimal price, String description, String state, Date createdAt, Date updatedAt, Date deleted_at){
         this.id = id;
         this.companyId = companyId;
         this.name = name;
+        this.sku = sku;
         this.price = price;
         this.description = description;
         this.state = state;
@@ -61,6 +63,10 @@ public record Product(
 
     public Date getDeleted_at() {
         return deleted_at;
+    }
+
+    public String getSku(){
+        return sku;
     }
 
 }
