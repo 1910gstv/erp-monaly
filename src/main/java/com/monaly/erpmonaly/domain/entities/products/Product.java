@@ -1,6 +1,7 @@
 package com.monaly.erpmonaly.domain.entities.products;
 
 import java.math.BigDecimal;
+import java.time.OffsetDateTime;
 import java.util.Date;
 import java.util.UUID;
 
@@ -12,11 +13,11 @@ public record Product(
     BigDecimal price,
     String description,
     String state,
-    Date createdAt,
-    Date updatedAt,
-    Date deleted_at
+    OffsetDateTime createdAt,
+    OffsetDateTime updatedAt,
+    OffsetDateTime deleted_at
 ){
-    public Product(UUID id, UUID companyId, String name, String sku, BigDecimal price, String description, String state, Date createdAt, Date updatedAt, Date deleted_at){
+    public Product(UUID id, UUID companyId, String name, String sku, BigDecimal price, String description, String state, OffsetDateTime createdAt, OffsetDateTime updatedAt, OffsetDateTime deleted_at){
         this.id = id;
         this.companyId = companyId;
         this.name = name;
@@ -53,15 +54,15 @@ public record Product(
         return state;
     }
 
-    public Date getCreatedAt() {
+    public OffsetDateTime getCreatedAt() {
         return createdAt;
     }
 
-    public Date getUpdatedAt() {
+    public OffsetDateTime getUpdatedAt() {
         return updatedAt;
     }
 
-    public Date getDeleted_at() {
+    public OffsetDateTime getDeleted_at() {
         return deleted_at;
     }
 
