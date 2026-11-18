@@ -2,6 +2,7 @@ package com.monaly.erpmonaly.api.controllers.products;
 
 import com.monaly.erpmonaly.application.DTOs.products.CreateProductRequest;
 import com.monaly.erpmonaly.application.usecases.products.CreateProductUseCase;
+import com.monaly.erpmonaly.application.usecases.products.ListProductsByCompany;
 import com.monaly.erpmonaly.domain.entities.products.Product;
 import com.monaly.erpmonaly.infra.persistence.UserEntity;
 import jakarta.validation.Valid;
@@ -14,12 +15,19 @@ import java.util.List;
 @RequestMapping("products")
 public class ProductsController {
     private final CreateProductUseCase createProductUseCase;
+    private final ListProductsByCompany listProductsByCompany;
 
-    public ProductsController(CreateProductUseCase createProductUseCase) {
+    public ProductsController(CreateProductUseCase createProductUseCase, ListProductsByCompany listProductsByCompany) {
         this.createProductUseCase = createProductUseCase;
+        this.listProductsByCompany = listProductsByCompany;
     }
     @PostMapping("/create")
     public Product create(@Valid @RequestBody CreateProductRequest request, @AuthenticationPrincipal UserEntity userEntity) throws Exception{
         return createProductUseCase.create(request, userEntity);
+    }
+
+    @GetMapping("/all")
+    public List<Product> findAll(@AuthenticationPrincipal UserEntity userEntity) throws Exception {
+        return listProductsByCompany.listAllByCompany(userEntity);
     }
 }

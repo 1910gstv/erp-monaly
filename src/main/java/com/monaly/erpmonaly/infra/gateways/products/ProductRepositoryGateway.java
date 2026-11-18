@@ -3,11 +3,14 @@ package com.monaly.erpmonaly.infra.gateways.products;
 import com.monaly.erpmonaly.application.DTOs.products.CreateProductRequest;
 import com.monaly.erpmonaly.application.gateways.products.ProductGateway;
 import com.monaly.erpmonaly.domain.entities.products.Product;
+import com.monaly.erpmonaly.domain.entities.users.User;
 import com.monaly.erpmonaly.infra.persistence.ProductEntity;
 import com.monaly.erpmonaly.infra.persistence.ProductRepository;
+import com.monaly.erpmonaly.infra.persistence.UserEntity;
 import org.springframework.stereotype.Repository;
 
 import java.time.OffsetDateTime;
+import java.util.List;
 import java.util.UUID;
 
 @Repository
@@ -51,6 +54,23 @@ public class ProductRepositoryGateway implements ProductGateway {
                 productSaved.getUpdatedAt(),
                 productSaved.getDeletedAt()
         );
+    }
+
+    @Override
+    public List<Product> findAllByCompanyId(UUID companyId) {
+        List<ProductEntity> products = productRepository.findAllProductsByCompanyId(companyId);
+        return products.stream().map(productEntity -> new Product(
+                productEntity.getId(),
+                productEntity.getCompanyId(),
+                productEntity.getName(),
+                productEntity.getSku(),
+                productEntity.getPrice(),
+                productEntity.getDescription(),
+                productEntity.getState(),
+                productEntity.getCreatedAt(),
+                productEntity.getUpdatedAt(),
+                productEntity.getDeletedAt()
+        )).toList();
     }
 
 }
