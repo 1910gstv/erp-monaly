@@ -7,6 +7,9 @@ import com.monaly.erpmonaly.domain.entities.users.User;
 import com.monaly.erpmonaly.infra.persistence.ProductEntity;
 import com.monaly.erpmonaly.infra.persistence.ProductRepository;
 import com.monaly.erpmonaly.infra.persistence.UserEntity;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
 
 import java.time.OffsetDateTime;
@@ -57,9 +60,9 @@ public class ProductRepositoryGateway implements ProductGateway {
     }
 
     @Override
-    public List<Product> findAllByCompanyId(UUID companyId) {
-        List<ProductEntity> products = productRepository.findAllProductsByCompanyId(companyId);
-        return products.stream().map(productEntity -> new Product(
+    public Page<Product> findAllByCompanyId(UUID companyId, String name, String sku, UUID id, String state, Pageable pageable) {
+        Page<ProductEntity> products = productRepository.findAllProductsByCompanyId(companyId, name, sku, id, state, pageable);
+        return products.map(productEntity -> new Product(
                 productEntity.getId(),
                 productEntity.getCompanyId(),
                 productEntity.getName(),
@@ -70,7 +73,7 @@ public class ProductRepositoryGateway implements ProductGateway {
                 productEntity.getCreatedAt(),
                 productEntity.getUpdatedAt(),
                 productEntity.getDeletedAt()
-        )).toList();
+        ));
     }
 
 }

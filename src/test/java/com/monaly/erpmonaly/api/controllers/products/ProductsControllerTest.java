@@ -2,6 +2,7 @@ package com.monaly.erpmonaly.api.controllers.products;
 
 import com.monaly.erpmonaly.application.DTOs.products.CreateProductRequest;
 import com.monaly.erpmonaly.application.usecases.products.CreateProductUseCase;
+import com.monaly.erpmonaly.application.usecases.products.ListProductsByCompany;
 import com.monaly.erpmonaly.domain.entities.products.Product;
 import com.monaly.erpmonaly.domain.enums.UserRole;
 import com.monaly.erpmonaly.domain.exceptions.DuplicationException;
@@ -13,12 +14,15 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.context.annotation.Import;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.time.OffsetDateTime;
 import java.math.BigDecimal;
+import java.util.List;
 import java.util.UUID;
 
 import static org.mockito.ArgumentMatchers.any;
@@ -40,6 +44,9 @@ class ProductsControllerTest {
     private CreateProductUseCase createProductUseCase;
 
     @MockitoBean
+    private ListProductsByCompany listProductsByCompany;
+
+    @MockitoBean
     private TokenService tokenService;
 
     @MockitoBean
@@ -53,6 +60,39 @@ class ProductsControllerTest {
                 .andExpect(status().isUnauthorized());
 
         verify(createProductUseCase, never()).create(any(CreateProductRequest.class), any(UserEntity.class));
+    }
+
+    @Test
+    void forwardsSearchFiltersAndPaginationForAuthenticatedUser() throws Exception {
+        UUID companyId = UUID.randomUUID();
+        UUID productId = UUID.randomUUID();
+        UserEntity authenticatedUser = authenticatedUser(companyId);
+        authenticate(authenticatedUser);
+
+        Product found = new Product(
+                productId, companyId, "Coffee", "SKU-1", new BigDecimal("12.50"),
+                "Description", "ACTIVE", OffsetDateTime.now(), OffsetDateTime.now(), null
+        );
+        when(listProductsByCompany.listAllByCompany(
+                eq(authenticatedUser), eq(2), eq(5), eq("coffee"), eq("SKU-1"),
+                eq(productId), eq("ACTIVE")
+        )).thenReturn(new PageImpl<>(List.of(found), PageRequest.of(2, 5), 11));
+
+        mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get("/products/all")
+                        .header("Authorization", "Bearer test-token")
+                        .param("page", "2")
+                        .param("size", "5")
+                        .param("name", "coffee")
+                        .param("sku", "SKU-1")
+                        .param("id", productId.toString())
+                        .param("state", "ACTIVE"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.content[0].id").value(productId.toString()))
+                .andExpect(jsonPath("$.content[0].companyId").value(companyId.toString()));
+
+        verify(listProductsByCompany).listAllByCompany(
+                authenticatedUser, 2, 5, "coffee", "SKU-1", productId, "ACTIVE"
+        );
     }
 
     @Test
