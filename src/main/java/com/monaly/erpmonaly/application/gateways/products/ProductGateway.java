@@ -1,5 +1,6 @@
 package com.monaly.erpmonaly.application.gateways.products;
 
+import com.monaly.erpmonaly.application.DTOs.EditProductRequest;
 import com.monaly.erpmonaly.application.DTOs.products.CreateProductRequest;
 import com.monaly.erpmonaly.domain.entities.products.Product;
 import org.springframework.data.domain.Page;
@@ -18,4 +19,5 @@ public interface ProductGateway {
             String state,
             Pageable pageable
     );
+    Product update(EditProductRequest request, UUID companyId);
 }

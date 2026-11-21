@@ -2,7 +2,7 @@ package com.monaly.erpmonaly.api.controllers.products;
 
 import com.monaly.erpmonaly.application.DTOs.products.CreateProductRequest;
 import com.monaly.erpmonaly.application.usecases.products.CreateProductUseCase;
-import com.monaly.erpmonaly.application.usecases.products.ListProductsByCompany;
+import com.monaly.erpmonaly.application.usecases.products.ListProductsByCompanyUseCase;
 import com.monaly.erpmonaly.domain.entities.products.Product;
 import com.monaly.erpmonaly.domain.enums.UserRole;
 import com.monaly.erpmonaly.domain.exceptions.DuplicationException;
@@ -44,7 +44,7 @@ class ProductsControllerTest {
     private CreateProductUseCase createProductUseCase;
 
     @MockitoBean
-    private ListProductsByCompany listProductsByCompany;
+    private ListProductsByCompanyUseCase listProductsByCompanyUseCase;
 
     @MockitoBean
     private TokenService tokenService;
@@ -73,7 +73,7 @@ class ProductsControllerTest {
                 productId, companyId, "Coffee", "SKU-1", new BigDecimal("12.50"),
                 "Description", "ACTIVE", OffsetDateTime.now(), OffsetDateTime.now(), null
         );
-        when(listProductsByCompany.listAllByCompany(
+        when(listProductsByCompanyUseCase.listAllByCompany(
                 eq(authenticatedUser), eq(2), eq(5), eq("coffee"), eq("SKU-1"),
                 eq(productId), eq("ACTIVE")
         )).thenReturn(new PageImpl<>(List.of(found), PageRequest.of(2, 5), 11));
@@ -90,7 +90,7 @@ class ProductsControllerTest {
                 .andExpect(jsonPath("$.content[0].id").value(productId.toString()))
                 .andExpect(jsonPath("$.content[0].companyId").value(companyId.toString()));
 
-        verify(listProductsByCompany).listAllByCompany(
+        verify(listProductsByCompanyUseCase).listAllByCompany(
                 authenticatedUser, 2, 5, "coffee", "SKU-1", productId, "ACTIVE"
         );
     }

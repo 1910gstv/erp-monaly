@@ -1,5 +1,6 @@
 package com.monaly.erpmonaly.infra.gateways.products;
 
+import com.monaly.erpmonaly.application.DTOs.EditProductRequest;
 import com.monaly.erpmonaly.application.DTOs.products.CreateProductRequest;
 import com.monaly.erpmonaly.application.gateways.products.ProductGateway;
 import com.monaly.erpmonaly.domain.entities.products.Product;
@@ -74,6 +75,11 @@ public class ProductRepositoryGateway implements ProductGateway {
                 productEntity.getUpdatedAt(),
                 productEntity.getDeletedAt()
         ));
+    }
+
+    @Override
+    public Product update(EditProductRequest request, UUID companyId) {
+        return null;
     }
 
 }

@@ -1,6 +1,6 @@
 package com.monaly.erpmonaly;
 
-import com.monaly.erpmonaly.application.usecases.products.ListProductsByCompany;
+import com.monaly.erpmonaly.application.usecases.products.ListProductsByCompanyUseCase;
 import com.monaly.erpmonaly.domain.entities.products.Product;
 import com.monaly.erpmonaly.domain.enums.UserRole;
 import com.monaly.erpmonaly.infra.persistence.CompanyEntity;
@@ -47,7 +47,7 @@ class ProductSearchIT {
     private ProductRepository productRepository;
 
     @Autowired
-    private ListProductsByCompany listProductsByCompany;
+    private ListProductsByCompanyUseCase listProductsByCompanyUseCase;
 
     private UUID companyId;
     private UUID otherCompanyId;
@@ -76,7 +76,7 @@ class ProductSearchIT {
         saveProduct(UUID.randomUUID(), companyId, "Organic Tea", "SKU-2", "ACTIVE", now, null);
         saveProduct(UUID.randomUUID(), otherCompanyId, "Organic Coffee", "SKU-1", "ACTIVE", now, null);
 
-        Page<Product> result = listProductsByCompany.listAllByCompany(
+        Page<Product> result = listProductsByCompanyUseCase.listAllByCompany(
                 authenticatedUser(companyId), 0, 10, "COFFEE", "SKU-1", null, "ACTIVE"
         );
 
@@ -93,13 +93,13 @@ class ProductSearchIT {
                 UUID.randomUUID(), otherCompanyId, "Product Two", "SKU-2", "ACTIVE", OffsetDateTime.now(), null
         );
 
-        Page<Product> ownResult = listProductsByCompany.listAllByCompany(
+        Page<Product> ownResult = listProductsByCompanyUseCase.listAllByCompany(
                 authenticatedUser(companyId), 0, 10, null, null, ownProduct.getId(), null
         );
-        Page<Product> otherCompanyResult = listProductsByCompany.listAllByCompany(
+        Page<Product> otherCompanyResult = listProductsByCompanyUseCase.listAllByCompany(
                 authenticatedUser(companyId), 0, 10, null, null, otherProduct.getId(), null
         );
-        Page<Product> missingResult = listProductsByCompany.listAllByCompany(
+        Page<Product> missingResult = listProductsByCompanyUseCase.listAllByCompany(
                 authenticatedUser(companyId), 0, 10, null, null, UUID.randomUUID(), null
         );
 
@@ -117,7 +117,7 @@ class ProductSearchIT {
         saveProduct(UUID.randomUUID(), companyId, "Active Product", "SKU-2", "ACTIVE", now, null);
         saveProduct(UUID.randomUUID(), companyId, "Deleted Product", "SKU-3", "INACTIVE", now, now);
 
-        Page<Product> result = listProductsByCompany.listAllByCompany(
+        Page<Product> result = listProductsByCompanyUseCase.listAllByCompany(
                 authenticatedUser(companyId), 0, 10, null, null, null, "INACTIVE"
         );
 
@@ -135,10 +135,10 @@ class ProductSearchIT {
         saveProduct(middleId, companyId, "Middle", "SKU-2", "ACTIVE", baseTime.plusMinutes(1), null);
         saveProduct(newestId, companyId, "Newest", "SKU-3", "ACTIVE", baseTime.plusMinutes(1), null);
 
-        Page<Product> firstPage = listProductsByCompany.listAllByCompany(
+        Page<Product> firstPage = listProductsByCompanyUseCase.listAllByCompany(
                 authenticatedUser(companyId), 0, 2, null, null, null, null
         );
-        Page<Product> secondPage = listProductsByCompany.listAllByCompany(
+        Page<Product> secondPage = listProductsByCompanyUseCase.listAllByCompany(
                 authenticatedUser(companyId), 1, 2, null, null, null, null
         );
 

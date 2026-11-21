@@ -9,14 +9,13 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
 import java.util.UUID;
 
 @Service
-public class ListProductsByCompany {
+public class ListProductsByCompanyUseCase {
     private final ProductGateway productGateway;
 
-    public ListProductsByCompany(ProductGateway productGateway) {
+    public ListProductsByCompanyUseCase(ProductGateway productGateway) {
         this.productGateway = productGateway;
     }
 
@@ -41,7 +40,4 @@ public class ListProductsByCompany {
 
         return productGateway.findAllByCompanyId(companyId, name, sku, id, state, pageable);
     }
-
-    // public Product listByIdAndCompany(){}
-
 }
