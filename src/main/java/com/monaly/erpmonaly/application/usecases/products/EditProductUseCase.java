@@ -22,7 +22,7 @@ public class EditProductUseCase {
     public Product edit(UserEntity userEntity, EditProductRequest data, UUID productId){
         UUID companyId = userEntity.getCompanyId();
 
-        Product product = productGateway.save(data, companyId);
+        Product product = productGateway.update(data, productId, companyId);
 
         return product;
     }

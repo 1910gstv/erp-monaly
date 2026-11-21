@@ -19,5 +19,5 @@ public interface ProductGateway {
             String state,
             Pageable pageable
     );
-    Product update(EditProductRequest request, UUID companyId);
+    Product update(EditProductRequest request, UUID productId, UUID companyId);
 }

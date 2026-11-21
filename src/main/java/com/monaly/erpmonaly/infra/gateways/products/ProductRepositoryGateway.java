@@ -8,6 +8,7 @@ import com.monaly.erpmonaly.domain.entities.users.User;
 import com.monaly.erpmonaly.infra.persistence.ProductEntity;
 import com.monaly.erpmonaly.infra.persistence.ProductRepository;
 import com.monaly.erpmonaly.infra.persistence.UserEntity;
+import jakarta.persistence.EntityNotFoundException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -78,8 +79,31 @@ public class ProductRepositoryGateway implements ProductGateway {
     }
 
     @Override
-    public Product update(EditProductRequest request, UUID companyId) {
-        return null;
+    public Product update(EditProductRequest request, UUID productId, UUID companyId) {
+        ProductEntity entity = productRepository.findByIdAndCompanyId(productId, companyId)
+                .orElseThrow(() -> new EntityNotFoundException("Produto não encontrado"));
+
+        entity.setName(request.name());
+        entity.setPrice(request.price());
+        entity.setSku(request.sku());
+        entity.setDescription(request.description());
+        entity.setState(entity.getState());
+        entity.setUpdatedAt(OffsetDateTime.now());
+
+        ProductEntity saved = productRepository.save(entity);
+
+        return new Product(
+                saved.getId(),
+                saved.getCompanyId(),
+                saved.getName(),
+                saved.getSku(),
+                saved.getPrice(),
+                saved.getDescription(),
+                saved.getState(),
+                saved.getCreatedAt(),
+                saved.getUpdatedAt(),
+                saved.getDeletedAt()
+        );
     }
 
 }

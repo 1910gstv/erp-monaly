@@ -7,6 +7,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 public interface ProductRepository extends JpaRepository<ProductEntity, UUID> {
@@ -28,4 +29,5 @@ public interface ProductRepository extends JpaRepository<ProductEntity, UUID> {
             @Param("state") String state,
             Pageable pageable
     );
+    Optional<ProductEntity> findByIdAndCompanyId(UUID id, UUID companyId);
 }
