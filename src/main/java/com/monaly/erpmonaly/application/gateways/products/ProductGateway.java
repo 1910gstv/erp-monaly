@@ -3,6 +3,7 @@ package com.monaly.erpmonaly.application.gateways.products;
 import com.monaly.erpmonaly.application.DTOs.EditProductRequest;
 import com.monaly.erpmonaly.application.DTOs.products.CreateProductRequest;
 import com.monaly.erpmonaly.domain.entities.products.Product;
+import com.monaly.erpmonaly.infra.persistence.ProductEntity;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
@@ -19,5 +20,6 @@ public interface ProductGateway {
             String state,
             Pageable pageable
     );
-    Product update(EditProductRequest request, UUID productId, UUID companyId);
+    Product update(ProductEntity request, UUID productId, UUID companyId);
+    Product findByIdAndCompany(UUID productId, UUID companyId);
 }

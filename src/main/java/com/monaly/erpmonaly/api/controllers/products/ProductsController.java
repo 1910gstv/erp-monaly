@@ -45,11 +45,11 @@ public class ProductsController {
     }
 
     @PutMapping("/edit/me/{productId}")
-    public Product edit(
+    public Product edit (
             @AuthenticationPrincipal UserEntity userEntity,
             @Valid @RequestBody EditProductRequest data,
             @PathVariable UUID productId
-    ){
+    )throws Exception{
         return editProductUseCase.edit(userEntity, data, productId);
     }
 }

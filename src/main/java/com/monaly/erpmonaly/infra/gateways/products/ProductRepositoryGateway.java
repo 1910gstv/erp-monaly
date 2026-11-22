@@ -36,8 +36,8 @@ public class ProductRepositoryGateway implements ProductGateway {
                 id,
                 companyId,
                 request.name(),
-                request.price(),
                 request.sku(),
+                request.price(),
                 request.description(),
                 request.state(),
                 now,
@@ -79,18 +79,9 @@ public class ProductRepositoryGateway implements ProductGateway {
     }
 
     @Override
-    public Product update(EditProductRequest request, UUID productId, UUID companyId) {
-        ProductEntity entity = productRepository.findByIdAndCompanyId(productId, companyId)
-                .orElseThrow(() -> new EntityNotFoundException("Produto não encontrado"));
+    public Product update(ProductEntity request, UUID productId, UUID companyId) {
 
-        entity.setName(request.name());
-        entity.setPrice(request.price());
-        entity.setSku(request.sku());
-        entity.setDescription(request.description());
-        entity.setState(entity.getState());
-        entity.setUpdatedAt(OffsetDateTime.now());
-
-        ProductEntity saved = productRepository.save(entity);
+        ProductEntity saved = productRepository.save(request);
 
         return new Product(
                 saved.getId(),
@@ -104,6 +95,25 @@ public class ProductRepositoryGateway implements ProductGateway {
                 saved.getUpdatedAt(),
                 saved.getDeletedAt()
         );
+    }
+
+    public Product findByIdAndCompany(UUID productId, UUID companyId){
+        ProductEntity entity = productRepository.findByIdAndCompanyId(productId, companyId)
+                .orElseThrow(() -> new EntityNotFoundException("Produto não encontrado"));
+
+        return new Product(
+                entity.getId(),
+                entity.getCompanyId(),
+                entity.getName(),
+                entity.getSku(),
+                entity.getPrice(),
+                entity.getDescription(),
+                entity.getState(),
+                entity.getCreatedAt(),
+                entity.getUpdatedAt(),
+                entity.getDeletedAt()
+        );
+
     }
 
 }

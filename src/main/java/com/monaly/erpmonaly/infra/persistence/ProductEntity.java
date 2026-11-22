@@ -51,8 +51,8 @@ public class ProductEntity {
             UUID id,
             UUID companyId,
             String name,
-            BigDecimal price,
             String sku,
+            BigDecimal price,
             String description,
             String state,
             OffsetDateTime createdAt,
@@ -62,8 +62,8 @@ public class ProductEntity {
         this.id = id;
         this.companyId = companyId;
         this.name = name;
-        this.price = price;
         this.sku = sku;
+        this.price = price;
         this.description = description;
         this.state = state;
         this.createdAt = createdAt;
