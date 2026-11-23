@@ -43,10 +43,6 @@ public class ProductEntity {
     @Column(name = "deleted_at", nullable = true)
     private OffsetDateTime deletedAt;
 
-    protected ProductEntity() {
-        // Construtor exigido pelo JPA
-    }
-
     public ProductEntity(
             UUID id,
             UUID companyId,
@@ -69,6 +65,10 @@ public class ProductEntity {
         this.createdAt = createdAt;
         this.updatedAt = updatedAt;
         this.deletedAt = deletedAt;
+    }
+
+    public ProductEntity() {
+        // Construtor exigido pelo JPA
     }
 
 

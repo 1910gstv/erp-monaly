@@ -1,12 +1,10 @@
 package com.monaly.erpmonaly.application.usecases.products;
 
 import com.monaly.erpmonaly.application.DTOs.EditProductRequest;
-import com.monaly.erpmonaly.application.DTOs.products.CreateProductRequest;
 import com.monaly.erpmonaly.application.gateways.products.ProductGateway;
 import com.monaly.erpmonaly.domain.entities.products.Product;
 import com.monaly.erpmonaly.infra.persistence.ProductEntity;
 import com.monaly.erpmonaly.infra.persistence.UserEntity;
-import jakarta.persistence.EntityNotFoundException;
 import org.springframework.stereotype.Service;
 
 import java.time.OffsetDateTime;

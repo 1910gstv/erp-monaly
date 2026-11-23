@@ -2,6 +2,7 @@ package com.monaly.erpmonaly.infra.gateways.products;
 
 import com.monaly.erpmonaly.application.DTOs.EditProductRequest;
 import com.monaly.erpmonaly.application.DTOs.products.CreateProductRequest;
+import com.monaly.erpmonaly.application.gateways.products.ProductEntityMapper;
 import com.monaly.erpmonaly.application.gateways.products.ProductGateway;
 import com.monaly.erpmonaly.domain.entities.products.Product;
 import com.monaly.erpmonaly.domain.entities.users.User;
@@ -22,9 +23,11 @@ import java.util.UUID;
 public class ProductRepositoryGateway implements ProductGateway {
 
     private final ProductRepository productRepository;
+    private final ProductEntityMapper productEntityMapper;
 
-    public ProductRepositoryGateway(ProductRepository productRepository) {
+    public ProductRepositoryGateway(ProductRepository productRepository, ProductEntityMapper productEntityMapper) {
         this.productRepository = productRepository;
+        this.productEntityMapper = productEntityMapper;
     }
 
     @Override
@@ -43,39 +46,16 @@ public class ProductRepositoryGateway implements ProductGateway {
                 now,
                 now,
                 null
-
         );
         ProductEntity productSaved = productRepository.save(product);
 
-        return new Product(
-                productSaved.getId(),
-                productSaved.getCompanyId(),
-                productSaved.getName(),
-                productSaved.getSku(),
-                productSaved.getPrice(),
-                productSaved.getDescription(),
-                productSaved.getState(),
-                productSaved.getCreatedAt(),
-                productSaved.getUpdatedAt(),
-                productSaved.getDeletedAt()
-        );
+        return productEntityMapper.toDomain(productSaved);
     }
 
     @Override
     public Page<Product> findAllByCompanyId(UUID companyId, String name, String sku, UUID id, String state, Pageable pageable) {
         Page<ProductEntity> products = productRepository.findAllProductsByCompanyId(companyId, name, sku, id, state, pageable);
-        return products.map(productEntity -> new Product(
-                productEntity.getId(),
-                productEntity.getCompanyId(),
-                productEntity.getName(),
-                productEntity.getSku(),
-                productEntity.getPrice(),
-                productEntity.getDescription(),
-                productEntity.getState(),
-                productEntity.getCreatedAt(),
-                productEntity.getUpdatedAt(),
-                productEntity.getDeletedAt()
-        ));
+        return products.map(productEntityMapper::toDomain);
     }
 
     @Override
@@ -83,37 +63,14 @@ public class ProductRepositoryGateway implements ProductGateway {
 
         ProductEntity saved = productRepository.save(request);
 
-        return new Product(
-                saved.getId(),
-                saved.getCompanyId(),
-                saved.getName(),
-                saved.getSku(),
-                saved.getPrice(),
-                saved.getDescription(),
-                saved.getState(),
-                saved.getCreatedAt(),
-                saved.getUpdatedAt(),
-                saved.getDeletedAt()
-        );
+        return productEntityMapper.toDomain(saved);
     }
 
     public Product findByIdAndCompany(UUID productId, UUID companyId){
         ProductEntity entity = productRepository.findByIdAndCompanyId(productId, companyId)
                 .orElseThrow(() -> new EntityNotFoundException("Produto não encontrado"));
 
-        return new Product(
-                entity.getId(),
-                entity.getCompanyId(),
-                entity.getName(),
-                entity.getSku(),
-                entity.getPrice(),
-                entity.getDescription(),
-                entity.getState(),
-                entity.getCreatedAt(),
-                entity.getUpdatedAt(),
-                entity.getDeletedAt()
-        );
-
+        return productEntityMapper.toDomain(entity);
     }
 
 }
