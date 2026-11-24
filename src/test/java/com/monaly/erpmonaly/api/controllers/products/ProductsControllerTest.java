@@ -1,7 +1,9 @@
 package com.monaly.erpmonaly.api.controllers.products;
 
 import com.monaly.erpmonaly.application.DTOs.products.CreateProductRequest;
+import com.monaly.erpmonaly.application.DTOs.EditProductRequest;
 import com.monaly.erpmonaly.application.usecases.products.CreateProductUseCase;
+import com.monaly.erpmonaly.application.usecases.products.EditProductUseCase;
 import com.monaly.erpmonaly.application.usecases.products.ListProductsByCompanyUseCase;
 import com.monaly.erpmonaly.domain.entities.products.Product;
 import com.monaly.erpmonaly.domain.enums.UserRole;
@@ -45,6 +47,9 @@ class ProductsControllerTest {
 
     @MockitoBean
     private ListProductsByCompanyUseCase listProductsByCompanyUseCase;
+
+    @MockitoBean
+    private EditProductUseCase editProductUseCase;
 
     @MockitoBean
     private TokenService tokenService;
@@ -93,6 +98,79 @@ class ProductsControllerTest {
         verify(listProductsByCompanyUseCase).listAllByCompany(
                 authenticatedUser, 2, 5, "coffee", "SKU-1", productId, "ACTIVE"
         );
+    }
+
+    @Test
+    void editsProductUsingAuthenticatedPrincipal() throws Exception {
+        UUID companyId = UUID.randomUUID();
+        UUID productId = UUID.randomUUID();
+        UserEntity authenticatedUser = authenticatedUser(companyId);
+        authenticate(authenticatedUser);
+        Product edited = new Product(
+                productId, companyId, "Edited", "SKU-2", new BigDecimal("20.00"),
+                "Edited description", "ACTIVE", OffsetDateTime.now(), OffsetDateTime.now(), null
+        );
+        when(editProductUseCase.edit(eq(authenticatedUser), any(EditProductRequest.class), eq(productId)))
+                .thenReturn(edited);
+
+        mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put("/products/edit/me/" + productId)
+                        .header("Authorization", "Bearer test-token")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "name": "Edited",
+                                  "price": 20.00,
+                                  "sku": "SKU-2",
+                                  "description": "Edited description"
+                                }
+                                """))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value(productId.toString()))
+                .andExpect(jsonPath("$.name").value("Edited"));
+
+        verify(editProductUseCase).edit(eq(authenticatedUser), any(EditProductRequest.class), eq(productId));
+    }
+
+    @Test
+    void deactivatesProductUsingAuthenticatedPrincipal() throws Exception {
+        UUID companyId = UUID.randomUUID();
+        UUID productId = UUID.randomUUID();
+        UserEntity authenticatedUser = authenticatedUser(companyId);
+        authenticate(authenticatedUser);
+        Product inactive = new Product(
+                productId, companyId, "Product", "SKU-1", new BigDecimal("12.50"),
+                "Description", "INACTIVE", OffsetDateTime.now(), OffsetDateTime.now(), null
+        );
+        when(editProductUseCase.deactivate(authenticatedUser, productId)).thenReturn(inactive);
+
+        mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put("/products/edit/deactivate/" + productId)
+                        .header("Authorization", "Bearer test-token"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value(productId.toString()))
+                .andExpect(jsonPath("$.state").value("INACTIVE"));
+
+        verify(editProductUseCase).deactivate(authenticatedUser, productId);
+    }
+
+    @Test
+    void reactivatesProductUsingAuthenticatedPrincipal() throws Exception {
+        UUID companyId = UUID.randomUUID();
+        UUID productId = UUID.randomUUID();
+        UserEntity authenticatedUser = authenticatedUser(companyId);
+        authenticate(authenticatedUser);
+        Product active = new Product(
+                productId, companyId, "Product", "SKU-1", new BigDecimal("12.50"),
+                "Description", "ACTIVE", OffsetDateTime.now(), OffsetDateTime.now(), null
+        );
+        when(editProductUseCase.reactivate(authenticatedUser, productId)).thenReturn(active);
+
+        mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put("/products/edit/reactivate/" + productId)
+                        .header("Authorization", "Bearer test-token"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value(productId.toString()))
+                .andExpect(jsonPath("$.state").value("ACTIVE"));
+
+        verify(editProductUseCase).reactivate(authenticatedUser, productId);
     }
 
     @Test

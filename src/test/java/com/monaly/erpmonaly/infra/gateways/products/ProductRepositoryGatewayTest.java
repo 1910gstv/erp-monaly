@@ -11,6 +11,7 @@ import org.mockito.ArgumentCaptor;
 
 import java.math.BigDecimal;
 import java.time.OffsetDateTime;
+import java.util.Optional;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -23,12 +24,12 @@ import static org.mockito.Mockito.when;
 class ProductRepositoryGatewayTest {
     private ProductRepository productRepository;
     private ProductRepositoryGateway gateway;
-    private  ProductEntityMapper productEntityMapper;
+    private ProductEntityMapper productEntityMapper;
 
     @BeforeEach
     void setUp() {
         productRepository = mock(ProductRepository.class);
-        productEntityMapper = mock(ProductEntityMapper.class);
+        productEntityMapper = new ProductEntityMapper();
         gateway = new ProductRepositoryGateway(productRepository, productEntityMapper);
     }
 
@@ -78,5 +79,24 @@ class ProductRepositoryGatewayTest {
         ArgumentCaptor<ProductEntity> entityCaptor = ArgumentCaptor.forClass(ProductEntity.class);
         verify(productRepository).save(entityCaptor.capture());
         assertNull(entityCaptor.getValue().getSku());
+    }
+
+    @Test
+    void findsProductOnlyWithMatchingIdAndCompany() {
+        UUID companyId = UUID.randomUUID();
+        UUID productId = UUID.randomUUID();
+        OffsetDateTime now = OffsetDateTime.now();
+        ProductEntity entity = new ProductEntity(
+                productId, companyId, "Product", "SKU-1", new BigDecimal("10.00"),
+                "Description", "ACTIVE", now, now, null
+        );
+        when(productRepository.findByIdAndCompanyId(productId, companyId))
+                .thenReturn(Optional.of(entity));
+
+        Product found = gateway.findByIdAndCompany(productId, companyId);
+
+        assertEquals(productId, found.id());
+        assertEquals(companyId, found.companyId());
+        verify(productRepository).findByIdAndCompanyId(productId, companyId);
     }
 }
