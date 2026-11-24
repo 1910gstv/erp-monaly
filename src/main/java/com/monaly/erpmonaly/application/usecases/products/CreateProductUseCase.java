@@ -22,7 +22,7 @@ public class CreateProductUseCase {
         UUID companyId = userEntity.getCompanyId();
         Product createdProduct = null;
         try {
-            createdProduct = productGateway.save(request, companyId);
+            createdProduct = productGateway.create(request, companyId);
         } catch(DataIntegrityViolationException e){
             String message = e.getMostSpecificCause().getMessage();
             if (message != null && (message.contains("uq_products_company_sku"))) {

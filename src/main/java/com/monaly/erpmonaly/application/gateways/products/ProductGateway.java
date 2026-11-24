@@ -11,7 +11,7 @@ import java.util.List;
 import java.util.UUID;
 
 public interface ProductGateway {
-    Product save(CreateProductRequest request, UUID companyId);
+    Product create(CreateProductRequest request, UUID companyId);
     Page<Product> findAllByCompanyId(
             UUID companyId,
             String name,

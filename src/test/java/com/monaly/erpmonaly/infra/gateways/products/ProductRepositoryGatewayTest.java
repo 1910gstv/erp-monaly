@@ -1,6 +1,7 @@
 package com.monaly.erpmonaly.infra.gateways.products;
 
 import com.monaly.erpmonaly.application.DTOs.products.CreateProductRequest;
+import com.monaly.erpmonaly.application.gateways.products.ProductEntityMapper;
 import com.monaly.erpmonaly.domain.entities.products.Product;
 import com.monaly.erpmonaly.infra.persistence.ProductEntity;
 import com.monaly.erpmonaly.infra.persistence.ProductRepository;
@@ -22,11 +23,13 @@ import static org.mockito.Mockito.when;
 class ProductRepositoryGatewayTest {
     private ProductRepository productRepository;
     private ProductRepositoryGateway gateway;
+    private  ProductEntityMapper productEntityMapper;
 
     @BeforeEach
     void setUp() {
         productRepository = mock(ProductRepository.class);
-        gateway = new ProductRepositoryGateway(productRepository);
+        productEntityMapper = mock(ProductEntityMapper.class);
+        gateway = new ProductRepositoryGateway(productRepository, productEntityMapper);
     }
 
     @Test
@@ -44,7 +47,7 @@ class ProductRepositoryGatewayTest {
                     return entity;
                 });
 
-        Product saved = gateway.save(request, companyId);
+        Product saved = gateway.create(request, companyId);
 
         ArgumentCaptor<ProductEntity> entityCaptor = ArgumentCaptor.forClass(ProductEntity.class);
         verify(productRepository).save(entityCaptor.capture());
@@ -70,7 +73,7 @@ class ProductRepositoryGatewayTest {
         when(productRepository.save(any(ProductEntity.class)))
                 .thenAnswer(invocation -> invocation.getArgument(0));
 
-        gateway.save(request, UUID.randomUUID());
+        gateway.create(request, UUID.randomUUID());
 
         ArgumentCaptor<ProductEntity> entityCaptor = ArgumentCaptor.forClass(ProductEntity.class);
         verify(productRepository).save(entityCaptor.capture());

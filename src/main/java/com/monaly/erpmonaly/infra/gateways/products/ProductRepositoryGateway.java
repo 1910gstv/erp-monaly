@@ -31,7 +31,7 @@ public class ProductRepositoryGateway implements ProductGateway {
     }
 
     @Override
-    public Product save(CreateProductRequest request, UUID companyId) {
+    public Product create(CreateProductRequest request, UUID companyId) {
         UUID id = UUID.randomUUID();
         OffsetDateTime now = OffsetDateTime.now();
 

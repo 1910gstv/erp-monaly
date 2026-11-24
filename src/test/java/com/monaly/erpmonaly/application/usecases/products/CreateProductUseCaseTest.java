@@ -39,28 +39,28 @@ class CreateProductUseCaseTest {
         CreateProductRequest request = request("Product", "SKU-1", "25.50");
         UserEntity user = authenticatedUser(COMPANY_ID);
         Product saved = product(request, COMPANY_ID);
-        when(productGateway.save(request, COMPANY_ID)).thenReturn(saved);
+        when(productGateway.create(request, COMPANY_ID)).thenReturn(saved);
 
         Product result = useCase.create(request, user);
 
         assertSame(saved, result);
-        verify(productGateway).save(request, COMPANY_ID);
+        verify(productGateway).create(request, COMPANY_ID);
     }
 
     @Test
     void allowsProductWithoutSku() {
         CreateProductRequest request = request("Product", null, "25.50");
-        when(productGateway.save(request, COMPANY_ID)).thenReturn(product(request, COMPANY_ID));
+        when(productGateway.create(request, COMPANY_ID)).thenReturn(product(request, COMPANY_ID));
 
         useCase.create(request, authenticatedUser(COMPANY_ID));
 
-        verify(productGateway).save(request, COMPANY_ID);
+        verify(productGateway).create(request, COMPANY_ID);
     }
 
     @Test
     void translatesDuplicateSkuInSameCompanyToDuplicationException() {
         CreateProductRequest request = request("Product", "DUP-1", "25.50");
-        when(productGateway.save(eq(request), eq(COMPANY_ID))).thenThrow(
+        when(productGateway.create(eq(request), eq(COMPANY_ID))).thenThrow(
                 new DataIntegrityViolationException("duplicate", new RuntimeException("uq_products_company_sku"))
         );
 
@@ -73,7 +73,7 @@ class CreateProductUseCaseTest {
         DataIntegrityViolationException failure = new DataIntegrityViolationException(
                 "integrity failure", new RuntimeException("fk_products_company")
         );
-        when(productGateway.save(any(CreateProductRequest.class), eq(COMPANY_ID))).thenThrow(failure);
+        when(productGateway.create(any(CreateProductRequest.class), eq(COMPANY_ID))).thenThrow(failure);
 
         DataIntegrityViolationException thrown = assertThrows(
                 DataIntegrityViolationException.class,

@@ -52,4 +52,20 @@ public class ProductsController {
     )throws Exception{
         return editProductUseCase.edit(userEntity, data, productId);
     }
+
+    @PutMapping("/edit/deactivate/{productId}")
+    public Product deactivate (
+            @AuthenticationPrincipal UserEntity userEntity,
+            @PathVariable UUID productId
+    )throws Exception{
+        return editProductUseCase.deactivate(userEntity, productId);
+    }
+
+    @PutMapping("/edit/reactivate/{productId}")
+    public Product reactivate (
+            @AuthenticationPrincipal UserEntity userEntity,
+            @PathVariable UUID productId
+    )throws Exception{
+        return editProductUseCase.reactivate(userEntity, productId);
+    }
 }
