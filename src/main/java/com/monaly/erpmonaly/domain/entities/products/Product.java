@@ -32,8 +32,8 @@ public final class Product {
     }
 
     public boolean deactivate() {
-        if (state.equals("ACTIVE")) {
-            this.state = "INACTIVE";
+        if (state.equalsIgnoreCase("active")) {
+            this.state = "inactive";
             this.updatedAt = OffsetDateTime.now();
             return true;
         }
@@ -42,8 +42,8 @@ public final class Product {
     }
 
     public boolean reactivate() {
-        if (state.equals("INACTIVE")) {
-            this.state = "ACTIVE";
+        if (state.equalsIgnoreCase("inactive")) {
+            this.state = "active";
             this.updatedAt = OffsetDateTime.now();
             return true;
         }
