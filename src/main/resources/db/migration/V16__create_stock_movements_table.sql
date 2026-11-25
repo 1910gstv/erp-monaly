@@ -16,4 +16,4 @@ CREATE TABLE stock_movements (
        CONSTRAINT fk_stock_mov_user
             FOREIGN KEY (user_id)
                     REFERENCES users(id)
-)
+);

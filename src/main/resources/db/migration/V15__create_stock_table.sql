@@ -13,6 +13,6 @@ CREATE TABLE stock (
             FOREIGN KEY (product_id)
                 REFERENCES products(id),
        CONSTRAINT chk_stock_quantity_non_negative CHECK(quantity >= 0)
-)
+);
 
 CREATE UNIQUE INDEX uq_stock_company_product_ative ON stock (company_id, product_id) WHERE deleted_at IS NULL;
