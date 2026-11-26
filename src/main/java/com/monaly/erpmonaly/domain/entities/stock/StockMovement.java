@@ -1,6 +1,7 @@
 package com.monaly.erpmonaly.domain.entities.stock;
 
 import java.time.OffsetDateTime;
+import java.util.Objects;
 import java.util.UUID;
 
 public final class StockMovement {
@@ -58,4 +59,29 @@ public final class StockMovement {
     public String getReason() {
         return reason;
     }
+
+    public void setId(UUID id) {
+        this.id = id;
+    }
+
+    public void setCompanyId(UUID companyId) {
+        this.companyId = companyId;
+    }
+
+    public void setType(String type) {
+        this.type = type;
+    }
+
+    public void setQuantity(int quantity) {
+        this.quantity = quantity;
+    }
+
+    public void setReason(String reason) {
+        this.reason = reason;
+    }
+
+    public void setCreatedAt(OffsetDateTime createdAt) {
+        this.createdAt = createdAt;
+    }
+
 }

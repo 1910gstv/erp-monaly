@@ -1,6 +1,7 @@
 package com.monaly.erpmonaly.domain.entities.stock;
 
 import java.time.OffsetDateTime;
+import java.util.Objects;
 import java.util.UUID;
 
 public final class Stock {
@@ -34,6 +35,10 @@ public final class Stock {
         return companyId;
     }
 
+    public void setCompanyId(UUID companyId) {
+        this.companyId = companyId;
+    }
+
     public UUID getProductId() {
         return productId;
     }
@@ -42,7 +47,47 @@ public final class Stock {
         return quantity;
     }
 
-    public void setCompanyId(UUID companyId) {
-        this.companyId = companyId;
+    public void setQuantity(int quantity) {
+        this.quantity = quantity;
     }
+
+    public OffsetDateTime getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(OffsetDateTime createdAt) {
+        this.createdAt = createdAt;
+    }
+
+    public OffsetDateTime getUpdatedAt() {
+        return updatedAt;
+    }
+
+    public void setUpdatedAt(OffsetDateTime updatedAt) {
+        this.updatedAt = updatedAt;
+    }
+
+    public OffsetDateTime getDeletedAt() {
+        return deletedAt;
+    }
+
+    public void setDeletedAt(OffsetDateTime deletedAt) {
+        this.deletedAt = deletedAt;
+    }
+
+    public void calculateNewStock(String type, int receivedQuantity) throws Exception {
+        if(Objects.equals(type, "entry")){
+            this.quantity += receivedQuantity;
+        } else if (Objects.equals(type, "exit")) {
+            if(receivedQuantity < this.quantity){
+                throw new Exception("Não é possível retirar mais produto do que tem no estoque");
+            }
+            this.quantity -= receivedQuantity;
+        } else if (Objects.equals(type, "adjustment")){
+            this.quantity = receivedQuantity;
+        }
+
+        this.updatedAt = OffsetDateTime.now();
+
+    };
 }
