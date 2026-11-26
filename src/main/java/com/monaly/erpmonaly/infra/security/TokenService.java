@@ -26,6 +26,7 @@ public class TokenService {
                     .withExpiresAt(genExpirationDate())
                     .withClaim("companyId", user.getCompanyId().toString())
                     .withClaim("role", user.getRole().toString())
+                    .withClaim("id", user.getId().toString())
                     .sign(algorithm);
             return token;
         } catch(Exception exception) {
