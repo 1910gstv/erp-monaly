@@ -76,10 +76,11 @@ public final class Stock {
     }
 
     public void calculateNewStock(String type, int receivedQuantity) throws Exception {
-        if(Objects.equals(type, "entry")){
+        this.quantity = 0;
+        if(Objects.equals(type, "entry") && receivedQuantity > 0){
             this.quantity += receivedQuantity;
         } else if (Objects.equals(type, "exit")) {
-            if(receivedQuantity < this.quantity){
+            if(receivedQuantity > this.quantity){
                 throw new Exception("Não é possível retirar mais produto do que tem no estoque");
             }
             this.quantity -= receivedQuantity;

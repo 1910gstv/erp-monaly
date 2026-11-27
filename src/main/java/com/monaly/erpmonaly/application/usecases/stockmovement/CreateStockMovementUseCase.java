@@ -3,12 +3,15 @@ package com.monaly.erpmonaly.application.usecases.stockmovement;
 import com.monaly.erpmonaly.application.DTOs.stock.CreateStockDTO;
 import com.monaly.erpmonaly.application.DTOs.stock.CreateStockMovementDTO;
 import com.monaly.erpmonaly.application.DTOs.stock.CreateStockMovementRequest;
+import com.monaly.erpmonaly.application.gateways.products.ProductGateway;
 import com.monaly.erpmonaly.application.gateways.stock.StockGateway;
 import com.monaly.erpmonaly.application.gateways.stock.StockMovementGateway;
+import com.monaly.erpmonaly.domain.entities.products.Product;
 import com.monaly.erpmonaly.domain.entities.stock.Stock;
 import com.monaly.erpmonaly.domain.entities.stock.StockMovement;
 import com.monaly.erpmonaly.infra.persistence.StockEntity;
 import com.monaly.erpmonaly.infra.persistence.UserEntity;
+import jakarta.persistence.EntityNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -20,16 +23,23 @@ import java.util.UUID;
 public class CreateStockMovementUseCase {
     private final StockMovementGateway stockMovementGateway;
     private final StockGateway stockGateway;
+    private final ProductGateway productGateway;
 
-    public CreateStockMovementUseCase(StockMovementGateway stockMovementGateway, StockGateway stockGateway) {
+    public CreateStockMovementUseCase(StockMovementGateway stockMovementGateway, StockGateway stockGateway, ProductGateway productGateway) {
         this.stockMovementGateway = stockMovementGateway;
         this.stockGateway = stockGateway;
+        this.productGateway = productGateway;
     }
 
     @Transactional
-    public StockMovement create(CreateStockMovementRequest request, UserEntity userEntity) {
+    public StockMovement create(CreateStockMovementRequest request, UserEntity userEntity) throws Exception {
         UUID companyId = userEntity.getCompanyId();
         UUID userId = userEntity.getId();
+
+        Product findedProduct = productGateway.findByIdAndCompany(request.productId(), companyId);
+        if(findedProduct == null){
+            throw new EntityNotFoundException("Esse produto não existe nessa empresa");
+        }
 
         CreateStockMovementDTO dto = new CreateStockMovementDTO(
                 companyId,
